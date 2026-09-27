@@ -1,6 +1,8 @@
 "use client";
 
 import { useClerk, useSignIn } from "@clerk/nextjs";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -70,7 +72,9 @@ export function useLogin(): UseLoginReturn {
 
   const { setActive } = useClerk();
 
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const ensureUser = useMutation(api.users.ensureUser);
+
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const login = async ({
@@ -86,58 +90,38 @@ export function useLogin(): UseLoginReturn {
     setError(null);
 
     try {
-      console.log("Starting Clerk login...", {
-        username,
-      });
-
       const result = await signIn.create({
         identifier: username,
         password,
       });
 
-      console.log("Clerk sign-in result:", {
-        status: result.status,
-        createdSessionId: result.createdSessionId,
-        firstFactorVerification: result.firstFactorVerification,
-        secondFactorVerification: result.secondFactorVerification,
-      });
-
       if (result.status !== "complete") {
-        const message =
-          `Clerk sign-in is not complete. Status: ${result.status}`;
-
-        console.warn(message, result);
-
-        setError(message);
+        setError(
+          `Clerk sign-in is not complete. Status: ${result.status}`,
+        );
         return;
       }
 
       if (!result.createdSessionId) {
-        const message =
-          "Clerk sign-in completed but no session ID was returned.";
-
-        console.error(message, result);
-
-        setError(message);
+        setError(
+          "Clerk sign-in completed but no session ID was returned.",
+        );
         return;
       }
-
-      console.log(
-        "Activating Clerk session:",
-        result.createdSessionId,
-      );
 
       await setActive({
         session: result.createdSessionId,
       });
 
-      console.log("Clerk session activated successfully.");
+      console.log("Clerk session activated.");
+
+      await ensureUser();
+
+      console.log("Convex user ensured.");
 
       router.push("/dashboard");
     } catch (error: unknown) {
-      const message = getErrorMessage(error);
-
-      setError(message);
+      setError(getErrorMessage(error));
     } finally {
       setIsLoading(false);
     }

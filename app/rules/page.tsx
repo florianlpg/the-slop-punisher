@@ -1,6 +1,8 @@
 import { AppSidebar } from "@/components/Dashboard/AppSidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
+import { RulesTable } from "@/components/Rules/RulesTable/RulesTable"
+
 export default function Page() {
   return (
     <SidebarProvider
@@ -15,10 +17,10 @@ export default function Page() {
       <SidebarInset>
         <div className="flex flex-1 flex-col">
           <div className="@container/main flex flex-1 flex-col gap-2">
+            <RulesTable />
           </div>
         </div>
       </SidebarInset>
-
     </SidebarProvider>
   )
 }
