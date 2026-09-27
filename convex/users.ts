@@ -59,6 +59,8 @@ export const ensureUser = mutation({
   handler: async (ctx) => {
     const identity = await requireIdentity(ctx);
 
+    console.log("IDENTITY:", identity);
+
     const existing = await ctx.db
       .query("users")
       .withIndex("by_clerk_user_id", (q) =>
