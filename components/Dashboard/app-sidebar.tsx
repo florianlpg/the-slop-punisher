@@ -1,11 +1,12 @@
 "use client"
 
-import * as React from "react"
+import { useState } from "react"
 
 import { NavDocuments } from "@/components/Dashboard/nav-documents"
 import { NavMain } from "@/components/Dashboard/nav-main"
 import { NavSecondary } from "@/components/Dashboard/nav-secondary"
 import { NavUser } from "@/components/Dashboard/nav-user"
+
 import {
   Sidebar,
   SidebarContent,
@@ -15,12 +16,16 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+
 import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon } from "lucide-react"
+
+import { AccountDialog } from "@/components/Dashboard/AccountDialog";
+
+import { useUser } from "@clerk/nextjs";
 
 const data = {
   user: {
     name: "shadcn",
-    email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
@@ -175,30 +180,48 @@ const data = {
     },
   ],
 }
+
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user, isLoaded, isSignedIn } = useUser();
+  const [isAccountDialogOpen, setIsAccountDialogOpen] = useState<boolean>(false);
+
+  if (!isLoaded || !isSignedIn) return null;
+
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<a href="#" />}
-            >
-              <CommandIcon className="size-5!" />
-              <span className="text-base font-semibold">Acme Inc.</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-      <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
-      </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
-    </Sidebar>
+    <>
+      <AccountDialog open={isAccountDialogOpen} setOpen={setIsAccountDialogOpen} />
+
+      <Sidebar collapsible="offcanvas" {...props}>
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                className="data-[slot=sidebar-menu-button]:p-1.5!"
+                render={<a href="#" />}
+              >
+                <CommandIcon className="size-5!" />
+                <span className="text-base font-semibold">Acme Inc.</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
+        <SidebarContent>
+          <NavMain items={data.navMain} />
+          <NavDocuments items={data.documents} />
+          <NavSecondary items={data.navSecondary} className="mt-auto" />
+        </SidebarContent>
+        <SidebarFooter>
+          <NavUser
+            user={{
+              name: user.firstName + " " + user.lastName,
+              avatar: user.imageUrl ,
+            }}
+            isUserAccountClicked={isAccountDialogOpen}
+            setIsUserAccountClicked={setIsAccountDialogOpen}
+          />
+        </SidebarFooter>
+      </Sidebar>
+    </>
+
   )
 }

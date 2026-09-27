@@ -3,7 +3,7 @@ import { cn } from "cn"
 import { FC, HTMLAttributes, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import ErrorDialogs from "../Login/ErrorDialogs";
+import ErrorDialogs from "./ErrorDialogs";
 
 import {
   Field,
@@ -87,12 +87,12 @@ export const LoginForm: FC<LoginFormProps> = ({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto text-sm underline-offset-2 hover:underline"
+                  <div
+                    onClick={() => setIsForgotPassword(true)}
+                    className="ml-auto text-sm underline-offset-2 hover:underline cursor-pointer"
                   >
                     Forgot your password?
-                  </a>
+                  </div>
                 </div>
                 <Input id="password" name="password" type="password" required />
               </Field>
