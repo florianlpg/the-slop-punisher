@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
+
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -22,19 +23,24 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+
 import { CirclePlusIcon } from "lucide-react"
 
 export function QuickCreateDialog() {
   const [open, setOpen] = useState(false)
   const [userId, setUserId] = useState<string | undefined>()
-  const [ruleId, setRuleId] = useState<Id<"rules"> | undefined>()
+  const [ruleId, setRuleId] = useState<
+    Id<"rules"> | undefined
+  >()
   const [quantity, setQuantity] = useState("1")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const users = useQuery(api.users.list)
   const rules = useQuery(api.rules.active)
 
-  const createInfraction = useMutation(api.infractions.create)
+  const createInfraction = useMutation(
+    api.infractions.create,
+  )
 
   const selectedUser = users?.find(
     (user) => user.clerkUserId === userId,
@@ -47,8 +53,10 @@ export function QuickCreateDialog() {
   const parsedQuantity = Number(quantity)
 
   const totalAmountCents =
-    selectedRule && Number.isFinite(parsedQuantity)
-      ? selectedRule.fineAmountCents * parsedQuantity
+    selectedRule &&
+    Number.isFinite(parsedQuantity)
+      ? selectedRule.fineAmountCents *
+        parsedQuantity
       : 0
 
   const formatAmount = (cents: number) =>
@@ -60,19 +68,28 @@ export function QuickCreateDialog() {
   const getUserDisplayName = (
     user: NonNullable<typeof users>[number],
   ) => {
-    const name = [user.firstName, user.lastName]
+    const name = [
+      user.firstName,
+      user.lastName,
+    ]
       .filter(Boolean)
       .join(" ")
 
-    return name || "Unknown user"
+    return (
+      name ||
+      user.name ||
+      user.username ||
+      "Unknown user"
+    )
   }
 
   const handleCreate = async () => {
-    if (!userId || !ruleId || !Number.isFinite(parsedQuantity)) {
-      return
-    }
-
-    if (parsedQuantity <= 0) {
+    if (
+      !userId ||
+      !ruleId ||
+      !Number.isFinite(parsedQuantity) ||
+      parsedQuantity <= 0
+    ) {
       return
     }
 
@@ -96,20 +113,26 @@ export function QuickCreateDialog() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button>
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+    >
+      <DialogTrigger asChild>
+        <Button className="w-full min-w-8">
           <CirclePlusIcon />
-          Quick Create
+          <span>Quick Create</span>
         </Button>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create infraction</DialogTitle>
+          <DialogTitle>
+            Create infraction
+          </DialogTitle>
 
           <DialogDescription>
-            Select a user, choose the rule, then specify the amount.
+            Select a user, choose the rule, then
+            specify the amount.
           </DialogDescription>
         </DialogHeader>
 
@@ -127,7 +150,9 @@ export function QuickCreateDialog() {
               <SelectTrigger>
                 <SelectValue placeholder="Select a user...">
                   {selectedUser
-                    ? getUserDisplayName(selectedUser)
+                    ? getUserDisplayName(
+                        selectedUser,
+                      )
                     : undefined}
                 </SelectValue>
               </SelectTrigger>
@@ -160,7 +185,9 @@ export function QuickCreateDialog() {
               }}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select a rule..." />
+                <SelectValue placeholder="Select a rule...">
+                  {selectedRule?.description}
+                </SelectValue>
               </SelectTrigger>
 
               <SelectContent>
@@ -186,14 +213,20 @@ export function QuickCreateDialog() {
                 min="1"
                 step="1"
                 value={quantity}
-                onChange={(event) =>
-                  setQuantity(event.target.value)
-                }
+                onChange={(event) => {
+                  setQuantity(
+                    event.target.value,
+                  )
+                }}
               />
 
               <p className="text-sm text-muted-foreground">
-                {formatAmount(selectedRule.fineAmountCents)} per{" "}
-                {selectedRule.unit === "custom"
+                {formatAmount(
+                  selectedRule.fineAmountCents,
+                )}{" "}
+                per{" "}
+                {selectedRule.unit ===
+                "custom"
                   ? selectedRule.customUnitLabel
                   : selectedRule.unit}
               </p>
@@ -205,7 +238,9 @@ export function QuickCreateDialog() {
                   </span>
 
                   <span className="font-semibold">
-                    {formatAmount(totalAmountCents)}
+                    {formatAmount(
+                      totalAmountCents,
+                    )}
                   </span>
                 </div>
               </div>
@@ -217,7 +252,9 @@ export function QuickCreateDialog() {
             disabled={
               !userId ||
               !ruleId ||
-              !Number.isFinite(parsedQuantity) ||
+              !Number.isFinite(
+                parsedQuantity,
+              ) ||
               parsedQuantity <= 0 ||
               isSubmitting
             }

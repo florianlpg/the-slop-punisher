@@ -17,10 +17,13 @@ export default defineSchema({
     voterUserId: v.string(),
     vote: v.union(
       v.literal("yes"),
-      v.literal("no")
+      v.literal("no"),
     ),
     votedAt: v.number(),
-  }),
+  }).index(
+    "by_infraction_and_voter",
+    ["infractionId", "voterUserId"],
+  ),
 
   notifications: defineTable({
     type: v.union(
@@ -76,12 +79,12 @@ export default defineSchema({
     accusedUserId: v.string(),
     reportedBy: v.string(),
     quantity: v.number(),
-    amountCents: v.number(), // snapshotted fineAmountCents * quantity, EUR
+    amountCents: v.number(),
     note: v.optional(v.string()),
     status: v.union(
       v.literal("pending"),
       v.literal("confirmed"),
-      v.literal("rejected")
+      v.literal("rejected"),
     ),
     createdAt: v.number(),
     resolvedAt: v.optional(v.number()),
