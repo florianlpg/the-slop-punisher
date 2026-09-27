@@ -1,13 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import {
-  CartesianGrid,
-  Line,
-  LineChart,
-  XAxis,
-  YAxis,
-} from "recharts"
+import * as React from "react";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts";
 
 import {
   Card,
@@ -16,7 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 
 import {
   ChartContainer,
@@ -24,7 +18,7 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
 
 import {
   Select,
@@ -32,173 +26,105 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
-import { useIsMobile } from "@/hooks/use-mobile"
+import { useIsMobile } from "@/hooks/use-mobile";
 
-import { buildChartData } from "./ChartData"
-import { createChartConfig } from "./ChartConfig"
-import {
-  formatCurrency,
-  formatDate,
-} from "./ChartUtils"
+import { buildChartData } from "./ChartData";
+import { createChartConfig } from "./ChartConfig";
+import { formatCurrency, formatDate } from "./ChartUtils";
 
-import type {
-  ChartAreaInteractiveProps,
-  TimeRange,
-} from "./CharTypes"
+import type { ChartAreaInteractiveProps, TimeRange } from "./CharTypes";
 
-export function ChartAreaInteractive({
-  data,
-}: ChartAreaInteractiveProps) {
-  const isMobile = useIsMobile()
+export function ChartAreaInteractive({ data }: ChartAreaInteractiveProps) {
+  const isMobile = useIsMobile();
 
-  const [timeRange, setTimeRange] =
-    React.useState<TimeRange>(
-      "30d",
-    )
+  const [timeRange, setTimeRange] = React.useState<TimeRange>("30d");
+  const [now, setNow] = React.useState(() => new Date());
 
-  const [now, setNow] =
-    React.useState(
-      () => new Date(),
-    )
-
-  React.useEffect(() => {
-    if (isMobile) {
-      setTimeRange("7d")
-    }
-  }, [isMobile])
+  const effectiveTimeRange = isMobile ? "7d" : timeRange;
 
   /*
    * Keep the "Today" graph moving while
    * the dashboard remains open.
    */
   React.useEffect(() => {
-    const interval =
-      window.setInterval(() => {
-        setNow(new Date())
-      }, 60_000)
+    const interval = window.setInterval(() => {
+      setNow(new Date());
+    }, 60_000);
 
     return () => {
-      window.clearInterval(
-        interval,
-      )
-    }
-  }, [])
+      window.clearInterval(interval);
+    };
+  }, []);
 
-  const chartData =
-    React.useMemo(
-      () =>
-        buildChartData(
-          data,
-          timeRange,
-          now,
-        ),
-      [
-        data,
-        timeRange,
-        now,
-      ],
-    )
+  const chartData = React.useMemo(
+    () => buildChartData(data, effectiveTimeRange, now),
+    [data, effectiveTimeRange, now],
+  );
 
-  const chartConfig =
-    React.useMemo(
-      () =>
-        createChartConfig(
-          data.users,
-        ),
-      [data.users],
-    )
+  const chartConfig = React.useMemo(
+    () => createChartConfig(data.users),
+    [data.users],
+  );
 
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>
-          Member balances
-        </CardTitle>
+        <CardTitle>Member balances</CardTitle>
 
         <CardDescription>
           <span className="hidden @[540px]/card:block">
             Money owed by each member over time
           </span>
 
-          <span className="@[540px]/card:hidden">
-            Member balances
-          </span>
+          <span className="@[540px]/card:hidden">Member balances</span>
         </CardDescription>
 
         <CardAction>
           <ToggleGroup
             multiple={false}
-            value={[timeRange]}
+            value={[effectiveTimeRange]}
             onValueChange={(value) => {
-              const nextValue =
-                value[0]
+              const nextValue = value[0];
 
               if (
-                nextValue ===
-                  "today" ||
-                nextValue ===
-                  "7d" ||
-                nextValue ===
-                  "30d" ||
-                nextValue ===
-                  "90d" ||
-                nextValue ===
-                  "1y"
+                nextValue === "today" ||
+                nextValue === "7d" ||
+                nextValue === "30d" ||
+                nextValue === "90d" ||
+                nextValue === "1y"
               ) {
-                setTimeRange(
-                  nextValue,
-                )
+                setTimeRange(nextValue);
               }
             }}
             variant="outline"
             className="hidden *:data-[slot=toggle-group-item]:px-4! @[767px]/card:flex"
           >
-            <ToggleGroupItem value="today">
-              Today
-            </ToggleGroupItem>
+            <ToggleGroupItem value="today">Today</ToggleGroupItem>
 
-            <ToggleGroupItem value="7d">
-              7 days
-            </ToggleGroupItem>
+            <ToggleGroupItem value="7d">7 days</ToggleGroupItem>
 
-            <ToggleGroupItem value="30d">
-              30 days
-            </ToggleGroupItem>
+            <ToggleGroupItem value="30d">30 days</ToggleGroupItem>
 
-            <ToggleGroupItem value="90d">
-              90 days
-            </ToggleGroupItem>
+            <ToggleGroupItem value="90d">90 days</ToggleGroupItem>
 
-            <ToggleGroupItem value="1y">
-              1 year
-            </ToggleGroupItem>
+            <ToggleGroupItem value="1y">1 year</ToggleGroupItem>
           </ToggleGroup>
 
           <Select
-            value={timeRange}
+            value={effectiveTimeRange}
             onValueChange={(value) => {
               if (
-                value ===
-                  "today" ||
-                value ===
-                  "7d" ||
-                value ===
-                  "30d" ||
-                value ===
-                  "90d" ||
-                value ===
-                  "1y"
+                value === "today" ||
+                value === "7d" ||
+                value === "30d" ||
+                value === "90d" ||
+                value === "1y"
               ) {
-                setTimeRange(
-                  value,
-                )
+                setTimeRange(value);
               }
             }}
           >
@@ -211,38 +137,23 @@ export function ChartAreaInteractive({
             </SelectTrigger>
 
             <SelectContent className="rounded-xl">
-              <SelectItem
-                value="today"
-                className="rounded-lg"
-              >
+              <SelectItem value="today" className="rounded-lg">
                 Today
               </SelectItem>
 
-              <SelectItem
-                value="7d"
-                className="rounded-lg"
-              >
+              <SelectItem value="7d" className="rounded-lg">
                 7 days
               </SelectItem>
 
-              <SelectItem
-                value="30d"
-                className="rounded-lg"
-              >
+              <SelectItem value="30d" className="rounded-lg">
                 30 days
               </SelectItem>
 
-              <SelectItem
-                value="90d"
-                className="rounded-lg"
-              >
+              <SelectItem value="90d" className="rounded-lg">
                 90 days
               </SelectItem>
 
-              <SelectItem
-                value="1y"
-                className="rounded-lg"
-              >
+              <SelectItem value="1y" className="rounded-lg">
                 1 year
               </SelectItem>
             </SelectContent>
@@ -262,114 +173,68 @@ export function ChartAreaInteractive({
               right: 12,
             }}
           >
-            <CartesianGrid
-              vertical={false}
-            />
+            <CartesianGrid vertical={false} />
 
             <XAxis
               dataKey="date"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              minTickGap={
-                timeRange ===
-                "today"
-                  ? 24
-                  : 32
-              }
-              tickFormatter={(
-                value,
-              ) =>
-                formatDate(
-                  value,
-                  timeRange,
-                )
-              }
+              minTickGap={effectiveTimeRange === "today" ? 24 : 32}
+              tickFormatter={(value) => formatDate(value, effectiveTimeRange)}
             />
 
             <YAxis
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              tickFormatter={(value) =>
-                formatCurrency(
-                  Number(value),
-                )
-              }
+              tickFormatter={(value) => formatCurrency(Number(value))}
             />
 
             <ChartTooltip
               cursor={false}
               content={
                 <ChartTooltipContent
-                  labelFormatter={(
-                    value,
-                  ) =>
-                    formatDate(
-                      value,
-                      timeRange,
-                    )
+                  labelFormatter={(value) =>
+                    formatDate(value, effectiveTimeRange)
                   }
-                  formatter={(
-                    value,
-                    name,
-                  ) => {
-                    const user =
-                      data.users.find(
-                        (item) =>
-                          item.id ===
-                          name,
-                      )
+                  formatter={(value, name) => {
+                    const user = data.users.find((item) => item.id === name);
 
                     return (
                       <div className="flex w-full items-center justify-between gap-4">
-                        <span>
-                          {user?.name ??
-                            name}
-                        </span>
+                        <span>{user?.name ?? name}</span>
 
                         <span className="font-mono font-medium tabular-nums">
-                          {formatCurrency(
-                            Number(
-                              value,
-                            ),
-                          )}
+                          {formatCurrency(Number(value))}
                         </span>
                       </div>
-                    )
+                    );
                   }}
                   indicator="dot"
                 />
               }
             />
 
-            {data.users.map(
-              (user) => (
-                <Line
-                  key={user.id}
-                  dataKey={user.id}
-                  type="monotone"
-                  stroke={
-                    user.color
-                  }
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{
-                    r: 4,
-                  }}
-                  connectNulls
-                />
-              ),
-            )}
+            {data.users.map((user) => (
+              <Line
+                key={user.id}
+                dataKey={user.id}
+                type="monotone"
+                stroke={user.color}
+                strokeWidth={2}
+                dot={false}
+                activeDot={{
+                  r: 4,
+                }}
+                connectNulls
+              />
+            ))}
 
-            <ChartLegend
-              content={
-                <ChartLegendContent />
-              }
-            />
+            <ChartLegend content={<ChartLegendContent />} />
           </LineChart>
         </ChartContainer>
       </CardContent>
     </Card>
-  )
+  );
 }

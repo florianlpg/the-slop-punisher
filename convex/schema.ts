@@ -1,5 +1,5 @@
-import { defineSchema, defineTable } from "convex/server"
-import { v } from "convex/values"
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
 
 export default defineSchema({
   users: defineTable({
@@ -16,15 +16,9 @@ export default defineSchema({
   infractionVotes: defineTable({
     infractionId: v.id("infractions"),
     voterUserId: v.string(),
-    vote: v.union(
-      v.literal("yes"),
-      v.literal("no"),
-    ),
+    vote: v.union(v.literal("yes"), v.literal("no")),
     votedAt: v.number(),
-  }).index(
-    "by_infraction_and_voter",
-    ["infractionId", "voterUserId"],
-  ),
+  }).index("by_infraction_and_voter", ["infractionId", "voterUserId"]),
 
   transactions: defineTable({
     userId: v.string(),
@@ -52,27 +46,17 @@ export default defineSchema({
   transactionVotes: defineTable({
     transactionId: v.id("transactions"),
     voterUserId: v.string(),
-    vote: v.union(
-      v.literal("yes"),
-      v.literal("no"),
-    ),
+    vote: v.union(v.literal("yes"), v.literal("no")),
     votedAt: v.number(),
-  }).index(
-    "by_transaction_and_voter",
-    ["transactionId", "voterUserId"],
-  ),
+  }).index("by_transaction_and_voter", ["transactionId", "voterUserId"]),
   notifications: defineTable({
-    type: v.union(
-      v.literal("infraction_approval"),
-      v.literal("system")
-    ),
+    type: v.union(v.literal("infraction_approval"), v.literal("system")),
     infractionId: v.optional(v.id("infractions")),
     recipientUserId: v.string(),
     message: v.string(),
     read: v.boolean(),
     createdAt: v.number(),
-  })
-    .index("by_recipient_and_read", ["recipientUserId", "read"]),
+  }).index("by_recipient_and_read", ["recipientUserId", "read"]),
 
   rules: defineTable({
     description: v.string(),
@@ -86,7 +70,7 @@ export default defineSchema({
       v.literal("row"),
       v.literal("line"),
       v.literal("minute"),
-      v.literal("custom")
+      v.literal("custom"),
     ),
     customUnitLabel: v.optional(v.string()),
 
@@ -96,7 +80,7 @@ export default defineSchema({
       v.literal("proposed"),
       v.literal("active"),
       v.literal("rejected"),
-      v.literal("archived")
+      v.literal("archived"),
     ),
 
     createdBy: v.string(),
@@ -152,12 +136,7 @@ export default defineSchema({
         description: v.optional(v.string()),
         amountCents: v.optional(v.number()),
         quantity: v.optional(v.number()),
-        vote: v.optional(
-          v.union(
-            v.literal("yes"),
-            v.literal("no"),
-          ),
-        ),
+        vote: v.optional(v.union(v.literal("yes"), v.literal("no"))),
         previousStatus: v.optional(v.string()),
         newStatus: v.optional(v.string()),
       }),
@@ -167,10 +146,7 @@ export default defineSchema({
   })
     .index("by_created_at", ["createdAt"])
     .index("by_actor", ["actorUserId"])
-    .index(
-      "by_entity",
-      ["entityType", "entityId"],
-    )
+    .index("by_entity", ["entityType", "entityId"])
     .index("by_action", ["action"]),
 
   infractions: defineTable({
@@ -191,4 +167,4 @@ export default defineSchema({
     .index("by_rule", ["ruleId"])
     .index("by_accused", ["accusedUserId"])
     .index("by_status", ["status"]),
-})
+});

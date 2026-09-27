@@ -1,18 +1,18 @@
-"use client"
+"use client";
 
-import { useMutation } from "convex/react"
-import { Check } from "lucide-react"
+import { useMutation } from "convex/react";
+import { Check } from "lucide-react";
 
-import { api } from "@/convex/_generated/api"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { api } from "@/convex/_generated/api";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
-import { type RuleTableRow } from "@/app/rules/types"
-import { columnHelper } from "./helper"
+import { type RuleTableRow } from "@/app/rules/types";
+import { columnHelper } from "./helper";
 
 function VoteCell({ rule }: { rule: RuleTableRow }) {
-  const castVote = useMutation(api.rules.vote)
-  const hasVotedYes = rule.myVote === "yes"
+  const castVote = useMutation(api.rules.vote);
+  const hasVotedYes = rule.myVote === "yes";
 
   return (
     <div className="flex items-center gap-2">
@@ -29,7 +29,11 @@ function VoteCell({ rule }: { rule: RuleTableRow }) {
           className="h-7"
           disabled={hasVotedYes}
           onClick={() =>
-            castVote({ ruleId: rule._id, vote: "yes", totalMembers: rule.totalMembers })
+            castVote({
+              ruleId: rule._id,
+              vote: "yes",
+              totalMembers: rule.totalMembers,
+            })
           }
         >
           <Check className="h-3.5 w-3.5" />
@@ -37,11 +41,11 @@ function VoteCell({ rule }: { rule: RuleTableRow }) {
         </Button>
       )}
     </div>
-  )
+  );
 }
 
 export const votesColumn = columnHelper.accessor((row) => row.yesVotes, {
   id: "votes",
   header: "Votes",
   cell: ({ row }) => <VoteCell rule={row.original} />,
-})
+});

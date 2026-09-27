@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { useMutation } from "convex/react"
-import { Plus } from "lucide-react"
+import * as React from "react";
+import { useMutation } from "convex/react";
+import { Plus } from "lucide-react";
 
-import { api } from "@/convex/_generated/api"
-import { Button } from "@/components/ui/button"
+import { api } from "@/convex/_generated/api";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,18 +14,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 
-import { type RuleUnit } from "@/app/rules/types"
+import { type RuleUnit } from "@/app/rules/types";
 
 const unitOptions: { value: RuleUnit; label: string }[] = [
   { value: "occurrence", label: "Per infraction" },
@@ -34,34 +34,34 @@ const unitOptions: { value: RuleUnit; label: string }[] = [
   { value: "line", label: "Per line" },
   { value: "minute", label: "Per minute" },
   { value: "custom", label: "Custom…" },
-]
+];
 
 export function AddRuleDialog() {
-  const createRule = useMutation(api.rules.create)
+  const createRule = useMutation(api.rules.create);
 
-  const [open, setOpen] = React.useState(false)
-  const [description, setDescription] = React.useState("")
-  const [fineAmount, setFineAmount] = React.useState("")
-  const [unit, setUnit] = React.useState<RuleUnit>("occurrence")
-  const [customUnitLabel, setCustomUnitLabel] = React.useState("")
-  const [requiredApprovals, setRequiredApprovals] = React.useState("1")
-  const [submitting, setSubmitting] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
+  const [description, setDescription] = React.useState("");
+  const [fineAmount, setFineAmount] = React.useState("");
+  const [unit, setUnit] = React.useState<RuleUnit>("occurrence");
+  const [customUnitLabel, setCustomUnitLabel] = React.useState("");
+  const [requiredApprovals, setRequiredApprovals] = React.useState("1");
+  const [submitting, setSubmitting] = React.useState(false);
 
   function reset() {
-    setDescription("")
-    setFineAmount("")
-    setUnit("occurrence")
-    setCustomUnitLabel("")
-    setRequiredApprovals("1")
+    setDescription("");
+    setFineAmount("");
+    setUnit("occurrence");
+    setCustomUnitLabel("");
+    setRequiredApprovals("1");
   }
 
   async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    const amount = Number(fineAmount)
-    const approvals = Number(requiredApprovals)
-    if (!description.trim() || Number.isNaN(amount) || amount <= 0) return
+    e.preventDefault();
+    const amount = Number(fineAmount);
+    const approvals = Number(requiredApprovals);
+    if (!description.trim() || Number.isNaN(amount) || amount <= 0) return;
 
-    setSubmitting(true)
+    setSubmitting(true);
     try {
       await createRule({
         description: description.trim(),
@@ -69,11 +69,11 @@ export function AddRuleDialog() {
         unit,
         customUnitLabel: unit === "custom" ? customUnitLabel.trim() : undefined,
         requiredApprovalsToConfirm: Math.max(1, approvals || 1),
-      })
-      reset()
-      setOpen(false)
+      });
+      reset();
+      setOpen(false);
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
   }
 
@@ -88,8 +88,8 @@ export function AddRuleDialog() {
           <DialogHeader>
             <DialogTitle>New rule</DialogTitle>
             <DialogDescription>
-              This rule starts as proposed and needs everyone to vote yes before it becomes
-              active.
+              This rule starts as proposed and needs everyone to vote yes before
+              it becomes active.
             </DialogDescription>
           </DialogHeader>
 
@@ -121,7 +121,10 @@ export function AddRuleDialog() {
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="unit">Per</Label>
-                <Select value={unit} onValueChange={(v) => setUnit(v as RuleUnit)}>
+                <Select
+                  value={unit}
+                  onValueChange={(v) => setUnit(v as RuleUnit)}
+                >
                   <SelectTrigger id="unit">
                     <SelectValue />
                   </SelectTrigger>
@@ -149,7 +152,9 @@ export function AddRuleDialog() {
             )}
 
             <div className="grid gap-2">
-              <Label htmlFor="approvals">Votes needed to confirm an infraction</Label>
+              <Label htmlFor="approvals">
+                Votes needed to confirm an infraction
+              </Label>
               <Input
                 id="approvals"
                 type="number"
@@ -169,5 +174,5 @@ export function AddRuleDialog() {
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

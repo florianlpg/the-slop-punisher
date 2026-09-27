@@ -1,55 +1,43 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useMutation } from "convex/react"
-import { api } from "@/convex/_generated/api"
-import type { ApprobationTableRow } from "@/app/approbations/types"
-import { Button } from "@/components/ui/button"
-import { CheckIcon, XIcon } from "lucide-react"
-import { columnHelper } from "./helper"
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { ApprobationTableRow } from "@/app/approbations/types";
+import { Button } from "@/components/ui/button";
+import { CheckIcon, XIcon } from "lucide-react";
+import { columnHelper } from "./helper";
 
-function ActionsCell({
-  infraction,
-}: {
-  infraction: ApprobationTableRow
-}) {
-  const vote = useMutation(api.infractions.vote)
+function ActionsCell({ infraction }: { infraction: ApprobationTableRow }) {
+  const vote = useMutation(api.infractions.vote);
 
-  const [isVoting, setIsVoting] = useState(false)
+  const [isVoting, setIsVoting] = useState(false);
 
-  const handleVote = async (
-    value: "yes" | "no",
-  ) => {
+  const handleVote = async (value: "yes" | "no") => {
     if (isVoting) {
-      return
+      return;
     }
 
-    setIsVoting(true)
+    setIsVoting(true);
 
     try {
       await vote({
         infractionId: infraction._id,
         vote: value,
-      })
+      });
     } catch (error) {
-      console.error(
-        "Failed to vote on infraction:",
-        error,
-      )
+      console.error("Failed to vote on infraction:", error);
     } finally {
-      setIsVoting(false)
+      setIsVoting(false);
     }
-  }
+  };
 
   if (infraction.currentUserVote) {
     return (
       <span className="text-sm text-muted-foreground">
-        You voted{" "}
-        {infraction.currentUserVote === "yes"
-          ? "Approve"
-          : "Reject"}
+        You voted {infraction.currentUserVote === "yes" ? "Approve" : "Reject"}
       </span>
-    )
+    );
   }
 
   return (
@@ -64,27 +52,20 @@ function ActionsCell({
         Reject
       </Button>
 
-      <Button
-        size="sm"
-        disabled={isVoting}
-        onClick={() => handleVote("yes")}
-      >
+      <Button size="sm" disabled={isVoting} onClick={() => handleVote("yes")}>
         <CheckIcon />
         Approve
       </Button>
     </div>
-  )
+  );
 }
 
-export const actionsColumn =
-  columnHelper.display({
-    id: "actions",
-    header: "",
-    cell: ({ row }) => (
-      <div className="flex justify-end">
-        <ActionsCell
-          infraction={row.original}
-        />
-      </div>
-    ),
-  })
+export const actionsColumn = columnHelper.display({
+  id: "actions",
+  header: "",
+  cell: ({ row }) => (
+    <div className="flex justify-end">
+      <ActionsCell infraction={row.original} />
+    </div>
+  ),
+});

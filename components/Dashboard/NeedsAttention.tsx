@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import Link from "next/link"
+import Link from "next/link";
 import {
   ArrowRightIcon,
   CircleAlertIcon,
   FileCheck2Icon,
   ReceiptTextIcon,
-} from "lucide-react"
+} from "lucide-react";
 
 import {
   Card,
@@ -14,35 +14,30 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 
 type DashboardAttention = {
-  pendingPenalties: number
-  pendingTransactions: number
-  proposedRules: number
-}
+  pendingPenalties: number;
+  pendingTransactions: number;
+  proposedRules: number;
+};
 
 type NeedsAttentionProps = {
-  attention: DashboardAttention
-}
+  attention: DashboardAttention;
+};
 
 type AttentionItemProps = {
-  count: number
-  label: string
-  href: string
+  count: number;
+  label: string;
+  href: string;
   icon: React.ComponentType<{
-    className?: string
-  }>
-}
+    className?: string;
+  }>;
+};
 
-function AttentionItem({
-  count,
-  label,
-  href,
-  icon: Icon,
-}: AttentionItemProps) {
+function AttentionItem({ count, label, href, icon: Icon }: AttentionItemProps) {
   if (count === 0) {
-    return null
+    return null;
   }
 
   return (
@@ -59,31 +54,25 @@ function AttentionItem({
           {count} {label}
         </p>
 
-        <p className="text-xs text-muted-foreground">
-          Requires your attention
-        </p>
+        <p className="text-xs text-muted-foreground">Requires your attention</p>
       </div>
 
       <ArrowRightIcon className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
     </Link>
-  )
+  );
 }
 
-export function NeedsAttention({
-  attention,
-}: NeedsAttentionProps) {
+export function NeedsAttention({ attention }: NeedsAttentionProps) {
   const total =
     attention.pendingPenalties +
     attention.pendingTransactions +
-    attention.proposedRules
+    attention.proposedRules;
 
   return (
     <Card>
       <CardHeader>
         <CardTitle>Needs attention</CardTitle>
-        <CardDescription>
-          Items waiting for approval or review.
-        </CardDescription>
+        <CardDescription>Items waiting for approval or review.</CardDescription>
       </CardHeader>
 
       <CardContent>
@@ -93,9 +82,7 @@ export function NeedsAttention({
               <CircleAlertIcon className="size-4 text-muted-foreground" />
             </div>
 
-            <p className="text-sm font-medium">
-              Everything is up to date
-            </p>
+            <p className="text-sm font-medium">Everything is up to date</p>
 
             <p className="text-xs text-muted-foreground">
               There are no pending approvals.
@@ -139,5 +126,5 @@ export function NeedsAttention({
         )}
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -10,7 +10,7 @@ import {
   sortFn_alphanumeric,
   sortFn_text,
   tableFeatures,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 export const features = tableFeatures({
   columnFilteringFeature,
@@ -30,6 +30,6 @@ export const features = tableFeatures({
     alphanumeric: sortFn_alphanumeric,
     text: sortFn_text,
   },
-})
+});
 
-export type DataTableFeatures = typeof features
+export type DataTableFeatures = typeof features;

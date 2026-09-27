@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { Checkbox } from "@/components/ui/checkbox"
+import { Checkbox } from "@/components/ui/checkbox";
 
-import { columnHelper } from "@/components/Rules/RulesTable/columns/helper"
+import { columnHelper } from "@/components/Rules/RulesTable/columns/helper";
 
 export const selectColumn = columnHelper.display({
   id: "select",
@@ -25,4 +25,4 @@ export const selectColumn = columnHelper.display({
   ),
   enableSorting: false,
   enableHiding: false,
-})
+});

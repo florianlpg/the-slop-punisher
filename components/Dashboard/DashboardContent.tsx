@@ -1,19 +1,17 @@
-"use client"
+"use client";
 
-import { useQuery } from "convex/react"
+import { useQuery } from "convex/react";
 
-import { api } from "@/convex/_generated/api"
+import { api } from "@/convex/_generated/api";
 
-import { ChartAreaInteractive } from "@/components/Dashboard/Chart/ChartAreaInteractive"
-import { MemberBalances } from "@/components/Dashboard/MemberBalances"
-import { NeedsAttention } from "@/components/Dashboard/NeedsAttention"
-import { RecentActivity } from "@/components/Dashboard/RecentActivity"
-import { SectionCards } from "@/components/Dashboard/SectionCards"
+import { ChartAreaInteractive } from "@/components/Dashboard/Chart/ChartAreaInteractive";
+import { MemberBalances } from "@/components/Dashboard/MemberBalances";
+import { NeedsAttention } from "@/components/Dashboard/NeedsAttention";
+import { RecentActivity } from "@/components/Dashboard/RecentActivity";
+import { SectionCards } from "@/components/Dashboard/SectionCards";
 
 export function DashboardContent() {
-  const dashboard = useQuery(
-    api.dashboard.overview,
-  )
+  const dashboard = useQuery(api.dashboard.overview);
 
   if (!dashboard) {
     return (
@@ -27,14 +25,12 @@ export function DashboardContent() {
             </div>
 
             <div className="grid grid-cols-1 gap-4 px-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 lg:px-6">
-              {Array.from({ length: 4 }).map(
-                (_, index) => (
-                  <div
-                    key={index}
-                    className="h-32 animate-pulse rounded-xl bg-muted"
-                  />
-                ),
-              )}
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-32 animate-pulse rounded-xl bg-muted"
+                />
+              ))}
             </div>
 
             <div className="px-4 lg:px-6">
@@ -43,7 +39,7 @@ export function DashboardContent() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -52,9 +48,7 @@ export function DashboardContent() {
         <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
           {/* Header */}
           <div className="px-4 lg:px-6">
-            <h1 className="text-2xl font-semibold tracking-tight">
-              Dashboard
-            </h1>
+            <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
 
             <p className="text-muted-foreground">
               Overview of your group&apos;s penalties and finances.
@@ -62,40 +56,26 @@ export function DashboardContent() {
           </div>
 
           {/* Stats */}
-          <SectionCards
-            stats={dashboard.stats}
-          />
+          <SectionCards stats={dashboard.stats} />
 
           {/* Chart */}
           <div className="px-4 lg:px-6">
-            <ChartAreaInteractive
-              data={dashboard.chart}
-            />
+            <ChartAreaInteractive data={dashboard.chart} />
           </div>
 
           {/* Attention + Activity */}
           <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 xl:grid-cols-2">
-            <NeedsAttention
-              attention={dashboard.attention}
-            />
+            <NeedsAttention attention={dashboard.attention} />
 
-            <RecentActivity
-              activities={
-                dashboard.recentActivity
-              }
-            />
+            <RecentActivity activities={dashboard.recentActivity} />
           </div>
 
           {/* Member balances */}
           <div className="px-4 lg:px-6">
-            <MemberBalances
-              balances={
-                dashboard.memberBalances
-              }
-            />
+            <MemberBalances balances={dashboard.memberBalances} />
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

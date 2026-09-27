@@ -1,8 +1,10 @@
-import { createColumnHelper } from "@tanstack/react-table"
+import { createColumnHelper } from "@tanstack/react-table";
 
-import type { LogTableRow } from "@/app/logs/types"
+import type { LogTableRow } from "@/app/logs/types";
 
-import type { DataTableFeatures } from "../LogsTableFeatures"
+import type { DataTableFeatures } from "../LogsTableFeatures";
 
-export const columnHelper =
-  createColumnHelper<DataTableFeatures, LogTableRow>()
+export const columnHelper = createColumnHelper<
+  DataTableFeatures,
+  LogTableRow
+>();

@@ -1,14 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useMutation, useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
-import type { Id } from "@/convex/_generated/dataModel"
+import { useState } from "react";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import type { Id } from "@/convex/_generated/dataModel";
 
-import {
-  Button,
-  buttonVariants,
-} from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -16,78 +13,53 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
-import { CirclePlusIcon } from "lucide-react"
+import { CirclePlusIcon } from "lucide-react";
 
 export function QuickCreateDialog() {
-  const [open, setOpen] = useState(false)
-  const [userId, setUserId] = useState<
-    string | undefined
-  >()
-  const [ruleId, setRuleId] = useState<
-    Id<"rules"> | undefined
-  >()
-  const [quantity, setQuantity] = useState("1")
-  const [isSubmitting, setIsSubmitting] =
-    useState(false)
+  const [open, setOpen] = useState(false);
+  const [userId, setUserId] = useState<string | undefined>();
+  const [ruleId, setRuleId] = useState<Id<"rules"> | undefined>();
+  const [quantity, setQuantity] = useState("1");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const users = useQuery(api.users.list)
-  const rules = useQuery(api.rules.active)
+  const users = useQuery(api.users.list);
+  const rules = useQuery(api.rules.active);
 
-  const createInfraction = useMutation(
-    api.infractions.create,
-  )
+  const createInfraction = useMutation(api.infractions.create);
 
-  const selectedUser = users?.find(
-    (user) => user.clerkUserId === userId,
-  )
+  const selectedUser = users?.find((user) => user.clerkUserId === userId);
 
-  const selectedRule = rules?.find(
-    (rule) => rule._id === ruleId,
-  )
+  const selectedRule = rules?.find((rule) => rule._id === ruleId);
 
-  const parsedQuantity = Number(quantity)
+  const parsedQuantity = Number(quantity);
 
   const totalAmountCents =
-    selectedRule &&
-    Number.isFinite(parsedQuantity)
-      ? selectedRule.fineAmountCents *
-        parsedQuantity
-      : 0
+    selectedRule && Number.isFinite(parsedQuantity)
+      ? selectedRule.fineAmountCents * parsedQuantity
+      : 0;
 
   const formatAmount = (cents: number) =>
     new Intl.NumberFormat("fr-FR", {
       style: "currency",
       currency: "EUR",
-    }).format(cents / 100)
+    }).format(cents / 100);
 
-  const getUserDisplayName = (
-    user: NonNullable<typeof users>[number],
-  ) => {
-    const name = [
-      user.firstName,
-      user.lastName,
-    ]
-      .filter(Boolean)
-      .join(" ")
+  const getUserDisplayName = (user: NonNullable<typeof users>[number]) => {
+    const name = [user.firstName, user.lastName].filter(Boolean).join(" ");
 
-    return (
-      name ||
-      user.name ||
-      user.username ||
-      "Unknown user"
-    )
-  }
+    return name || user.name || user.username || "Unknown user";
+  };
 
   const handleCreate = async () => {
     if (
@@ -96,10 +68,10 @@ export function QuickCreateDialog() {
       !Number.isFinite(parsedQuantity) ||
       parsedQuantity <= 0
     ) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       await createInfraction({
@@ -107,22 +79,19 @@ export function QuickCreateDialog() {
         accusedUserId: userId,
         quantity: parsedQuantity,
         note: undefined,
-      })
+      });
 
-      setOpen(false)
-      setUserId(undefined)
-      setRuleId(undefined)
-      setQuantity("1")
+      setOpen(false);
+      setUserId(undefined);
+      setRuleId(undefined);
+      setQuantity("1");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={setOpen}
-    >
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger
         className={buttonVariants({
           className: "w-full min-w-8",
@@ -134,13 +103,10 @@ export function QuickCreateDialog() {
 
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            Create infraction
-          </DialogTitle>
+          <DialogTitle>Create infraction</DialogTitle>
 
           <DialogDescription>
-            Select a user, choose the rule, then
-            specify the amount.
+            Select a user, choose the rule, then specify the amount.
           </DialogDescription>
         </DialogHeader>
 
@@ -152,25 +118,18 @@ export function QuickCreateDialog() {
             <Select
               value={userId}
               onValueChange={(value) => {
-                setUserId(value ?? undefined)
+                setUserId(value ?? undefined);
               }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a user...">
-                  {selectedUser
-                    ? getUserDisplayName(
-                        selectedUser,
-                      )
-                    : undefined}
+                  {selectedUser ? getUserDisplayName(selectedUser) : undefined}
                 </SelectValue>
               </SelectTrigger>
 
               <SelectContent>
                 {users?.map((user) => (
-                  <SelectItem
-                    key={user.clerkUserId}
-                    value={user.clerkUserId}
-                  >
+                  <SelectItem key={user.clerkUserId} value={user.clerkUserId}>
                     {getUserDisplayName(user)}
                   </SelectItem>
                 ))}
@@ -185,11 +144,7 @@ export function QuickCreateDialog() {
             <Select
               value={ruleId}
               onValueChange={(value) => {
-                setRuleId(
-                  value
-                    ? (value as Id<"rules">)
-                    : undefined,
-                )
+                setRuleId(value ? (value as Id<"rules">) : undefined);
               }}
             >
               <SelectTrigger>
@@ -200,10 +155,7 @@ export function QuickCreateDialog() {
 
               <SelectContent>
                 {rules?.map((rule) => (
-                  <SelectItem
-                    key={rule._id}
-                    value={rule._id}
-                  >
+                  <SelectItem key={rule._id} value={rule._id}>
                     {rule.description}
                   </SelectItem>
                 ))}
@@ -222,33 +174,23 @@ export function QuickCreateDialog() {
                 step="1"
                 value={quantity}
                 onChange={(event) => {
-                  setQuantity(
-                    event.target.value,
-                  )
+                  setQuantity(event.target.value);
                 }}
               />
 
               <p className="text-sm text-muted-foreground">
-                {formatAmount(
-                  selectedRule.fineAmountCents,
-                )}{" "}
-                per{" "}
-                {selectedRule.unit ===
-                "custom"
+                {formatAmount(selectedRule.fineAmountCents)} per{" "}
+                {selectedRule.unit === "custom"
                   ? selectedRule.customUnitLabel
                   : selectedRule.unit}
               </p>
 
               <div className="rounded-lg border bg-muted/50 p-4">
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">
-                    Total
-                  </span>
+                  <span className="text-muted-foreground">Total</span>
 
                   <span className="font-semibold">
-                    {formatAmount(
-                      totalAmountCents,
-                    )}
+                    {formatAmount(totalAmountCents)}
                   </span>
                 </div>
               </div>
@@ -260,20 +202,16 @@ export function QuickCreateDialog() {
             disabled={
               !userId ||
               !ruleId ||
-              !Number.isFinite(
-                parsedQuantity,
-              ) ||
+              !Number.isFinite(parsedQuantity) ||
               parsedQuantity <= 0 ||
               isSubmitting
             }
             onClick={handleCreate}
           >
-            {isSubmitting
-              ? "Creating..."
-              : "Create infraction"}
+            {isSubmitting ? "Creating..." : "Create infraction"}
           </Button>
         </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

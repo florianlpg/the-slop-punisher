@@ -1,6 +1,4 @@
-import type { TransactionTableRow } from "@/app/transactions/types"
-
-import { columnHelper } from "./helper"
+import { columnHelper } from "./helper";
 
 export const userColumn = columnHelper.accessor(
   (row): unknown => row.userDisplayName,
@@ -9,12 +7,10 @@ export const userColumn = columnHelper.accessor(
     header: "User",
 
     cell: ({ row }) => (
-      <span className="font-medium">
-        {row.original.userDisplayName}
-      </span>
+      <span className="font-medium">{row.original.userDisplayName}</span>
     ),
 
     sortFn: "text",
     filterFn: "includesString",
   },
-)
+);

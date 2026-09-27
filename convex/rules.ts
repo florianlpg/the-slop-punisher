@@ -1,90 +1,69 @@
-import { v } from "convex/values"
+import { v } from "convex/values";
 
 import {
   mutation,
   query,
   type MutationCtx,
   type QueryCtx,
-} from "./_generated/server"
+} from "./_generated/server";
 
-import { createLog } from "./logs"
+import { createLog } from "./logs";
 
-async function requireIdentity(
-  ctx: QueryCtx | MutationCtx,
-) {
-  const identity = await ctx.auth.getUserIdentity()
+async function requireIdentity(ctx: QueryCtx | MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
 
   if (!identity) {
-    throw new Error("Not authenticated")
+    throw new Error("Not authenticated");
   }
 
-  return identity
+  return identity;
 }
 
 export const active = query({
   args: {},
 
   handler: async (ctx) => {
-    await requireIdentity(ctx)
+    await requireIdentity(ctx);
 
     return await ctx.db
       .query("rules")
-      .withIndex("by_status", (q) =>
-        q.eq("status", "active"),
-      )
+      .withIndex("by_status", (q) => q.eq("status", "active"))
       .order("desc")
-      .collect()
+      .collect();
   },
-})
+});
 
 export const list = query({
   args: {},
 
   handler: async (ctx) => {
-    const identity = await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    const rules = await ctx.db
-      .query("rules")
-      .order("desc")
-      .collect()
+    const rules = await ctx.db.query("rules").order("desc").collect();
 
     return Promise.all(
       rules.map(async (rule) => {
         const votes = await ctx.db
           .query("ruleVotes")
-          .withIndex(
-            "by_rule_and_voter",
-            (q) =>
-              q.eq(
-                "ruleId",
-                rule._id,
-              ),
-          )
-          .collect()
+          .withIndex("by_rule_and_voter", (q) => q.eq("ruleId", rule._id))
+          .collect();
 
-        const yesVotes =
-          votes.filter(
-            (vote) =>
-              vote.vote === "yes",
-          ).length
+        const yesVotes = votes.filter((vote) => vote.vote === "yes").length;
 
         const myVote =
-          votes.find(
-            (vote) =>
-              vote.voterUserId ===
-              identity.subject,
-          )?.vote ?? null
+          votes.find((vote) => vote.voterUserId === identity.subject)?.vote ??
+          null;
 
         return {
           ...rule,
           yesVotes,
           totalVotes: votes.length,
           myVote,
-        }
+        };
       }),
-    )
+    );
   },
-})
+});
 
 export const create = mutation({
   args: {
@@ -101,67 +80,51 @@ export const create = mutation({
       v.literal("custom"),
     ),
 
-    customUnitLabel:
-      v.optional(v.string()),
+    customUnitLabel: v.optional(v.string()),
 
-    requiredApprovalsToConfirm:
-      v.number(),
+    requiredApprovalsToConfirm: v.number(),
   },
 
   handler: async (ctx, args) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    const ruleId =
-      await ctx.db.insert("rules", {
-        description:
-          args.description,
+    const ruleId = await ctx.db.insert("rules", {
+      description: args.description,
 
-        fineAmountCents:
-          args.fineAmountCents,
+      fineAmountCents: args.fineAmountCents,
 
-        unit: args.unit,
+      unit: args.unit,
 
-        customUnitLabel:
-          args.customUnitLabel,
+      customUnitLabel: args.customUnitLabel,
 
-        requiredApprovalsToConfirm:
-          args.requiredApprovalsToConfirm,
+      requiredApprovalsToConfirm: args.requiredApprovalsToConfirm,
 
-        status: "proposed",
+      status: "proposed",
 
-        createdBy:
-          identity.subject,
+      createdBy: identity.subject,
 
-        createdAt:
-          Date.now(),
-      })
+      createdAt: Date.now(),
+    });
 
     await createLog(ctx, {
-      actorUserId:
-        identity.subject,
+      actorUserId: identity.subject,
 
-      action:
-        "rule_created",
+      action: "rule_created",
 
-      entityType:
-        "rule",
+      entityType: "rule",
 
-      entityId:
-        ruleId,
+      entityId: ruleId,
 
       metadata: {
-        description:
-          args.description,
+        description: args.description,
 
-        amountCents:
-          args.fineAmountCents,
+        amountCents: args.fineAmountCents,
       },
-    })
+    });
 
-    return ruleId
+    return ruleId;
   },
-})
+});
 
 export const archive = mutation({
   args: {
@@ -169,208 +132,123 @@ export const archive = mutation({
   },
 
   handler: async (ctx, args) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    const rule =
-      await ctx.db.get(
-        "rules",
-        args.ruleId,
-      )
+    const rule = await ctx.db.get("rules", args.ruleId);
 
     if (!rule) {
-      throw new Error(
-        "Rule not found",
-      )
+      throw new Error("Rule not found");
     }
 
-    await ctx.db.patch(
-      "rules",
-      args.ruleId,
-      {
-        status: "archived",
-      },
-    )
+    await ctx.db.patch("rules", args.ruleId, {
+      status: "archived",
+    });
 
     await createLog(ctx, {
-      actorUserId:
-        identity.subject,
+      actorUserId: identity.subject,
 
-      action:
-        "rule_updated",
+      action: "rule_updated",
 
-      entityType:
-        "rule",
+      entityType: "rule",
 
-      entityId:
-        args.ruleId,
+      entityId: args.ruleId,
 
       metadata: {
-        previousStatus:
-          rule.status,
+        previousStatus: rule.status,
 
-        newStatus:
-          "archived",
+        newStatus: "archived",
       },
-    })
+    });
   },
-})
+});
 
 export const vote = mutation({
   args: {
     ruleId: v.id("rules"),
 
-    vote: v.union(
-      v.literal("yes"),
-      v.literal("no"),
-    ),
+    vote: v.union(v.literal("yes"), v.literal("no")),
 
-    totalMembers:
-      v.number(),
+    totalMembers: v.number(),
   },
 
   handler: async (ctx, args) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    const rule =
-      await ctx.db.get(
-        "rules",
-        args.ruleId,
-      )
+    const rule = await ctx.db.get("rules", args.ruleId);
 
     if (!rule) {
-      throw new Error(
-        "Rule not found",
-      )
+      throw new Error("Rule not found");
     }
 
-    if (
-      rule.status !==
-      "proposed"
-    ) {
-      throw new Error(
-        "This rule is no longer open for voting",
-      )
+    if (rule.status !== "proposed") {
+      throw new Error("This rule is no longer open for voting");
     }
 
-    const existing =
-      await ctx.db
-        .query("ruleVotes")
-        .withIndex(
-          "by_rule_and_voter",
-          (q) =>
-            q
-              .eq(
-                "ruleId",
-                args.ruleId,
-              )
-              .eq(
-                "voterUserId",
-                identity.subject,
-              ),
-        )
-        .unique()
+    const existing = await ctx.db
+      .query("ruleVotes")
+      .withIndex("by_rule_and_voter", (q) =>
+        q.eq("ruleId", args.ruleId).eq("voterUserId", identity.subject),
+      )
+      .unique();
 
     if (existing) {
-      await ctx.db.patch(
-        "ruleVotes",
-        existing._id,
-        {
-          vote: args.vote,
-          votedAt:
-            Date.now(),
-        },
-      )
+      await ctx.db.patch("ruleVotes", existing._id, {
+        vote: args.vote,
+        votedAt: Date.now(),
+      });
     } else {
-      await ctx.db.insert(
-        "ruleVotes",
-        {
-          ruleId:
-            args.ruleId,
+      await ctx.db.insert("ruleVotes", {
+        ruleId: args.ruleId,
 
-          voterUserId:
-            identity.subject,
+        voterUserId: identity.subject,
 
-          vote: args.vote,
+        vote: args.vote,
 
-          votedAt:
-            Date.now(),
-        },
-      )
+        votedAt: Date.now(),
+      });
     }
 
     await createLog(ctx, {
-      actorUserId:
-        identity.subject,
+      actorUserId: identity.subject,
 
-      action:
-        "rule_vote",
+      action: "rule_vote",
 
-      entityType:
-        "rule",
+      entityType: "rule",
 
-      entityId:
-        args.ruleId,
+      entityId: args.ruleId,
 
       metadata: {
-        vote:
-          args.vote,
+        vote: args.vote,
       },
-    })
+    });
 
-    const votes =
-      await ctx.db
-        .query("ruleVotes")
-        .withIndex(
-          "by_rule_and_voter",
-          (q) =>
-            q.eq(
-              "ruleId",
-              args.ruleId,
-            ),
-        )
-        .collect()
+    const votes = await ctx.db
+      .query("ruleVotes")
+      .withIndex("by_rule_and_voter", (q) => q.eq("ruleId", args.ruleId))
+      .collect();
 
-    const yesVotes =
-      votes.filter(
-        (vote) =>
-          vote.vote === "yes",
-      ).length
+    const yesVotes = votes.filter((vote) => vote.vote === "yes").length;
 
-    if (
-      yesVotes >=
-      args.totalMembers
-    ) {
-      await ctx.db.patch(
-        "rules",
-        args.ruleId,
-        {
-          status: "active",
-        },
-      )
+    if (yesVotes >= args.totalMembers) {
+      await ctx.db.patch("rules", args.ruleId, {
+        status: "active",
+      });
 
       await createLog(ctx, {
-        actorUserId:
-          identity.subject,
+        actorUserId: identity.subject,
 
-        action:
-          "rule_confirmed",
+        action: "rule_confirmed",
 
-        entityType:
-          "rule",
+        entityType: "rule",
 
-        entityId:
-          args.ruleId,
+        entityId: args.ruleId,
 
         metadata: {
-          previousStatus:
-            "proposed",
+          previousStatus: "proposed",
 
-          newStatus:
-            "active",
+          newStatus: "active",
         },
-      })
+      });
     }
   },
-})
+});

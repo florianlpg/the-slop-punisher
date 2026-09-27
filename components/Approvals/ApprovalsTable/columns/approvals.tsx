@@ -1,17 +1,13 @@
-"use client"
+"use client";
 
-import { columnHelper } from "./helper"
+import { columnHelper } from "./helper";
 
 export const approvalsColumn = columnHelper.display({
   id: "approvals",
   header: "Approvals",
 
   cell: ({ row }) => {
-    const {
-      yesVotes,
-      noVotes,
-      requiredApprovals,
-    } = row.original
+    const { yesVotes, noVotes, requiredApprovals } = row.original;
 
     return (
       <div className="space-y-0.5">
@@ -25,6 +21,6 @@ export const approvalsColumn = columnHelper.display({
           </div>
         )}
       </div>
-    )
+    );
   },
-})
+});

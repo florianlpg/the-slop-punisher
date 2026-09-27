@@ -1,10 +1,8 @@
-import type { ChartConfig } from "@/components/ui/chart"
+import type { ChartConfig } from "@/components/ui/chart";
 
-import type { ChartUser } from "./CharTypes"
+import type { ChartUser } from "./CharTypes";
 
-export function createChartConfig(
-  users: ChartUser[],
-): ChartConfig {
+export function createChartConfig(users: ChartUser[]): ChartConfig {
   return Object.fromEntries(
     users.map((user) => [
       user.id,
@@ -13,5 +11,5 @@ export function createChartConfig(
         color: user.color,
       },
     ]),
-  )
+  );
 }

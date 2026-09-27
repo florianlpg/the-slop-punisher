@@ -1,27 +1,15 @@
-import { columnHelper } from "./helper"
+import { columnHelper } from "./helper";
 
-import type { LogTableRow } from "@/app/logs/types"
+import type { LogTableRow } from "@/app/logs/types";
 
-function getUserDisplayName(
-  user: LogTableRow["actor"],
-) {
+function getUserDisplayName(user: LogTableRow["actor"]) {
   if (!user) {
-    return "Unknown user"
+    return "Unknown user";
   }
 
-  const fullName = [
-    user.firstName,
-    user.lastName,
-  ]
-    .filter(Boolean)
-    .join(" ")
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
 
-  return (
-    fullName ||
-    user.name ||
-    user.username ||
-    "Unknown user"
-  )
+  return fullName || user.name || user.username || "Unknown user";
 }
 
 export const actorColumn = columnHelper.accessor(
@@ -47,4 +35,4 @@ export const actorColumn = columnHelper.accessor(
     sortFn: "text",
     filterFn: "includesString",
   },
-)
+);

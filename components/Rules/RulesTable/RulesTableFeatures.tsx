@@ -11,7 +11,7 @@ import {
   sortFn_alphanumeric,
   sortFn_text,
   tableFeatures,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 export const features = tableFeatures({
   columnFilteringFeature,
@@ -20,28 +20,21 @@ export const features = tableFeatures({
   rowSelectionFeature,
   rowSortingFeature,
 
-  filteredRowModel:
-    createFilteredRowModel(),
+  filteredRowModel: createFilteredRowModel(),
 
-  paginatedRowModel:
-    createPaginatedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
 
-  sortedRowModel:
-    createSortedRowModel(),
+  sortedRowModel: createSortedRowModel(),
 
   filterFns: {
-    includesString:
-      filterFn_includesString,
+    includesString: filterFn_includesString,
   },
 
   sortFns: {
-    alphanumeric:
-      sortFn_alphanumeric,
+    alphanumeric: sortFn_alphanumeric,
 
-    text:
-      sortFn_text,
+    text: sortFn_text,
   },
-})
+});
 
-export type DataTableFeatures =
-  typeof features
+export type DataTableFeatures = typeof features;

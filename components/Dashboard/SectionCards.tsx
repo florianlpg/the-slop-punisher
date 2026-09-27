@@ -1,41 +1,39 @@
-"use client"
+"use client";
 
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardAction,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Clock3Icon,
   TrendingDownIcon,
   TrendingUpIcon,
   UsersIcon,
-} from "lucide-react"
+} from "lucide-react";
 
 type DashboardStats = {
-  totalOutstandingCents: number
-  totalCollectedCents: number
-  pendingApprovals: number
-  memberCount: number
-}
+  totalOutstandingCents: number;
+  totalCollectedCents: number;
+  pendingApprovals: number;
+  memberCount: number;
+};
 
 type SectionCardsProps = {
-  stats: DashboardStats
-}
+  stats: DashboardStats;
+};
 
 function formatCurrency(cents: number) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
-  }).format(cents / 100)
+  }).format(cents / 100);
 }
 
-export function SectionCards({
-  stats,
-}: SectionCardsProps) {
+export function SectionCards({ stats }: SectionCardsProps) {
   return (
     <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
       <Card className="@container/card">
@@ -43,9 +41,7 @@ export function SectionCards({
           <CardDescription>Total owed</CardDescription>
 
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {formatCurrency(
-              stats.totalOutstandingCents,
-            )}
+            {formatCurrency(stats.totalOutstandingCents)}
           </CardTitle>
 
           <CardAction>
@@ -62,9 +58,7 @@ export function SectionCards({
           <CardDescription>Total collected</CardDescription>
 
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-            {formatCurrency(
-              stats.totalCollectedCents,
-            )}
+            {formatCurrency(stats.totalCollectedCents)}
           </CardTitle>
 
           <CardAction>
@@ -110,5 +104,5 @@ export function SectionCards({
         </CardHeader>
       </Card>
     </div>
-  )
+  );
 }

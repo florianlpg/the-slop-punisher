@@ -1,56 +1,22 @@
-import { v } from "convex/values"
+import { v } from "convex/values";
 
 import {
   mutation,
   query,
   type MutationCtx,
   type QueryCtx,
-} from "./_generated/server"
+} from "./_generated/server";
 
-import { createLog } from "./logs"
+import { createLog } from "./logs";
 
-async function requireIdentity(
-  ctx: QueryCtx | MutationCtx,
-) {
-  const identity =
-    await ctx.auth.getUserIdentity()
+async function requireIdentity(ctx: QueryCtx | MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
 
   if (!identity) {
-    throw new Error(
-      "Not authenticated",
-    )
+    throw new Error("Not authenticated");
   }
 
-  return identity
-}
-
-function getUserDisplayName(
-  user:
-    | {
-        firstName?: string
-        lastName?: string
-        name?: string
-        username?: string
-      }
-    | null,
-) {
-  if (!user) {
-    return "Unknown user"
-  }
-
-  const fullName = [
-    user.firstName,
-    user.lastName,
-  ]
-    .filter(Boolean)
-    .join(" ")
-
-  return (
-    fullName ||
-    user.name ||
-    user.username ||
-    "Unknown user"
-  )
+  return identity;
 }
 
 /**
@@ -62,174 +28,113 @@ function getUserDisplayName(
  */
 export const create = mutation({
   args: {
-    ruleId:
-      v.id("rules"),
+    ruleId: v.id("rules"),
 
-    accusedUserId:
-      v.string(),
+    accusedUserId: v.string(),
 
-    quantity:
-      v.number(),
+    quantity: v.number(),
 
-    note:
-      v.optional(
-        v.string(),
-      ),
+    note: v.optional(v.string()),
   },
 
   handler: async (ctx, args) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
     if (args.quantity <= 0) {
-      throw new Error(
-        "Quantity must be greater than zero",
-      )
+      throw new Error("Quantity must be greater than zero");
     }
 
-    const rule =
-      await ctx.db.get(
-        "rules",
-        args.ruleId,
-      )
+    const rule = await ctx.db.get("rules", args.ruleId);
 
     if (!rule) {
-      throw new Error(
-        "Rule not found",
-      )
+      throw new Error("Rule not found");
     }
 
-    if (
-      rule.status !== "active"
-    ) {
-      throw new Error(
-        "This rule is not active",
-      )
+    if (rule.status !== "active") {
+      throw new Error("This rule is not active");
     }
 
-    const accusedUser =
-      await ctx.db
-        .query("users")
-        .withIndex(
-          "by_clerk_user_id",
-          (q) =>
-            q.eq(
-              "clerkUserId",
-              args.accusedUserId,
-            ),
-        )
-        .unique()
+    const accusedUser = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) =>
+        q.eq("clerkUserId", args.accusedUserId),
+      )
+      .unique();
 
     if (!accusedUser) {
-      throw new Error(
-        "Accused user not found",
-      )
+      throw new Error("Accused user not found");
     }
 
-    const amountCents =
-      rule.fineAmountCents *
-      args.quantity
+    const amountCents = rule.fineAmountCents * args.quantity;
 
     const status =
-      rule.requiredApprovalsToConfirm <=
-      1
-        ? "confirmed"
-        : "pending"
+      rule.requiredApprovalsToConfirm <= 1 ? "confirmed" : "pending";
 
-    const now =
-      Date.now()
+    const now = Date.now();
 
-    const infractionId =
-      await ctx.db.insert(
-        "infractions",
-        {
-          ruleId:
-            args.ruleId,
+    const infractionId = await ctx.db.insert("infractions", {
+      ruleId: args.ruleId,
 
-          accusedUserId:
-            args.accusedUserId,
+      accusedUserId: args.accusedUserId,
 
-          reportedBy:
-            identity.subject,
+      reportedBy: identity.subject,
 
-          quantity:
-            args.quantity,
+      quantity: args.quantity,
 
-          amountCents,
+      amountCents,
 
-          note:
-            args.note,
+      note: args.note,
 
-          status,
+      status,
 
-          createdAt:
-            now,
+      createdAt: now,
 
-          ...(status ===
-          "confirmed"
-            ? {
-                resolvedAt:
-                  now,
-              }
-            : {}),
-        },
-      )
+      ...(status === "confirmed"
+        ? {
+            resolvedAt: now,
+          }
+        : {}),
+    });
 
     await createLog(ctx, {
-      actorUserId:
-        identity.subject,
+      actorUserId: identity.subject,
 
-      action:
-        "infraction_created",
+      action: "infraction_created",
 
-      entityType:
-        "infraction",
+      entityType: "infraction",
 
-      entityId:
-        infractionId,
+      entityId: infractionId,
 
-      targetUserId:
-        args.accusedUserId,
+      targetUserId: args.accusedUserId,
 
       metadata: {
         amountCents,
-        quantity:
-          args.quantity,
-        newStatus:
-          status,
+        quantity: args.quantity,
+        newStatus: status,
       },
-    })
+    });
 
-    if (
-      status ===
-      "confirmed"
-    ) {
+    if (status === "confirmed") {
       await createLog(ctx, {
-        actorUserId:
-          identity.subject,
+        actorUserId: identity.subject,
 
-        action:
-          "infraction_confirmed",
+        action: "infraction_confirmed",
 
-        entityType:
-          "infraction",
+        entityType: "infraction",
 
-        entityId:
-          infractionId,
+        entityId: infractionId,
 
-        targetUserId:
-          args.accusedUserId,
+        targetUserId: args.accusedUserId,
 
         metadata: {
-          newStatus:
-            "confirmed",
+          newStatus: "confirmed",
         },
-      })
+      });
     }
 
-    return infractionId
+    return infractionId;
   },
-})
+});
 
 /**
  * Return all pending infractions that require approval.
@@ -238,402 +143,237 @@ export const approvals = query({
   args: {},
 
   handler: async (ctx) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    const infractions =
-      await ctx.db
-        .query("infractions")
-        .withIndex(
-          "by_status",
-          (q) =>
-            q.eq(
-              "status",
-              "pending",
-            ),
-        )
-        .order("desc")
-        .collect()
+    const infractions = await ctx.db
+      .query("infractions")
+      .withIndex("by_status", (q) => q.eq("status", "pending"))
+      .order("desc")
+      .collect();
 
     return await Promise.all(
-      infractions.map(
-        async (
-          infraction,
-        ) => {
-          const rule =
-            await ctx.db.get(
-              "rules",
-              infraction.ruleId,
-            )
+      infractions.map(async (infraction) => {
+        const rule = await ctx.db.get("rules", infraction.ruleId);
 
-          const accusedUser =
-            await ctx.db
-              .query("users")
-              .withIndex(
-                "by_clerk_user_id",
-                (q) =>
-                  q.eq(
-                    "clerkUserId",
-                    infraction.accusedUserId,
-                  ),
-              )
-              .unique()
+        const accusedUser = await ctx.db
+          .query("users")
+          .withIndex("by_clerk_user_id", (q) =>
+            q.eq("clerkUserId", infraction.accusedUserId),
+          )
+          .unique();
 
-          const reporterUser =
-            await ctx.db
-              .query("users")
-              .withIndex(
-                "by_clerk_user_id",
-                (q) =>
-                  q.eq(
-                    "clerkUserId",
-                    infraction.reportedBy,
-                  ),
-              )
-              .unique()
+        const reporterUser = await ctx.db
+          .query("users")
+          .withIndex("by_clerk_user_id", (q) =>
+            q.eq("clerkUserId", infraction.reportedBy),
+          )
+          .unique();
 
-          const votes =
-            await ctx.db
-              .query(
-                "infractionVotes",
-              )
-              .withIndex(
-                "by_infraction_and_voter",
-                (q) =>
-                  q.eq(
-                    "infractionId",
-                    infraction._id,
-                  ),
-              )
-              .collect()
+        const votes = await ctx.db
+          .query("infractionVotes")
+          .withIndex("by_infraction_and_voter", (q) =>
+            q.eq("infractionId", infraction._id),
+          )
+          .collect();
 
-          const yesVotes =
-            votes.filter(
-              (vote) =>
-                vote.vote ===
-                "yes",
-            ).length
+        const yesVotes = votes.filter((vote) => vote.vote === "yes").length;
 
-          const noVotes =
-            votes.filter(
-              (vote) =>
-                vote.vote ===
-                "no",
-            ).length
+        const noVotes = votes.filter((vote) => vote.vote === "no").length;
 
-          const currentUserVote =
-            votes.find(
-              (vote) =>
-                vote.voterUserId ===
-                identity.subject,
-            )?.vote ?? null
+        const currentUserVote =
+          votes.find((vote) => vote.voterUserId === identity.subject)?.vote ??
+          null;
 
-          return {
-            ...infraction,
+        return {
+          ...infraction,
 
-            rule,
+          rule,
 
-            accusedUser,
+          accusedUser,
 
-            reporterUser,
+          reporterUser,
 
-            yesVotes,
+          yesVotes,
 
-            noVotes,
+          noVotes,
 
-            requiredApprovals:
-              rule?.requiredApprovalsToConfirm ??
-              1,
+          requiredApprovals: rule?.requiredApprovalsToConfirm ?? 1,
 
-            currentUserVote,
-          }
-        },
-      ),
-    )
+          currentUserVote,
+        };
+      }),
+    );
   },
-})
+});
 
 /**
  * Vote on a pending infraction.
  */
 export const vote = mutation({
   args: {
-    infractionId:
-      v.id("infractions"),
+    infractionId: v.id("infractions"),
 
-    vote: v.union(
-      v.literal("yes"),
-      v.literal("no"),
-    ),
+    vote: v.union(v.literal("yes"), v.literal("no")),
   },
 
   handler: async (ctx, args) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    const infraction =
-      await ctx.db.get(
-        "infractions",
-        args.infractionId,
-      )
+    const infraction = await ctx.db.get("infractions", args.infractionId);
 
     if (!infraction) {
-      throw new Error(
-        "Infraction not found",
-      )
+      throw new Error("Infraction not found");
     }
 
-    if (
-      infraction.status !==
-      "pending"
-    ) {
-      throw new Error(
-        "This infraction is no longer pending",
-      )
+    if (infraction.status !== "pending") {
+      throw new Error("This infraction is no longer pending");
     }
 
-    const existingVote =
-      await ctx.db
-        .query(
-          "infractionVotes",
-        )
-        .withIndex(
-          "by_infraction_and_voter",
-          (q) =>
-            q
-              .eq(
-                "infractionId",
-                args.infractionId,
-              )
-              .eq(
-                "voterUserId",
-                identity.subject,
-              ),
-        )
-        .unique()
+    const existingVote = await ctx.db
+      .query("infractionVotes")
+      .withIndex("by_infraction_and_voter", (q) =>
+        q
+          .eq("infractionId", args.infractionId)
+          .eq("voterUserId", identity.subject),
+      )
+      .unique();
 
     if (existingVote) {
-      await ctx.db.patch(
-        "infractionVotes",
-        existingVote._id,
-        {
-          vote:
-            args.vote,
+      await ctx.db.patch("infractionVotes", existingVote._id, {
+        vote: args.vote,
 
-          votedAt:
-            Date.now(),
-        },
-      )
+        votedAt: Date.now(),
+      });
     } else {
-      await ctx.db.insert(
-        "infractionVotes",
-        {
-          infractionId:
-            args.infractionId,
+      await ctx.db.insert("infractionVotes", {
+        infractionId: args.infractionId,
 
-          voterUserId:
-            identity.subject,
+        voterUserId: identity.subject,
 
-          vote:
-            args.vote,
+        vote: args.vote,
 
-          votedAt:
-            Date.now(),
-        },
-      )
+        votedAt: Date.now(),
+      });
     }
 
     await createLog(ctx, {
-      actorUserId:
-        identity.subject,
+      actorUserId: identity.subject,
 
-      action:
-        "infraction_vote",
+      action: "infraction_vote",
 
-      entityType:
-        "infraction",
+      entityType: "infraction",
 
-      entityId:
-        args.infractionId,
+      entityId: args.infractionId,
 
-      targetUserId:
-        infraction.accusedUserId,
+      targetUserId: infraction.accusedUserId,
 
       metadata: {
-        vote:
-          args.vote,
+        vote: args.vote,
       },
-    })
+    });
 
-    const votes =
-      await ctx.db
-        .query(
-          "infractionVotes",
-        )
-        .withIndex(
-          "by_infraction_and_voter",
-          (q) =>
-            q.eq(
-              "infractionId",
-              args.infractionId,
-            ),
-        )
-        .collect()
-
-    const yesVotes =
-      votes.filter(
-        (vote) =>
-          vote.vote === "yes",
-      ).length
-
-    const noVotes =
-      votes.filter(
-        (vote) =>
-          vote.vote === "no",
-      ).length
-
-    const rule =
-      await ctx.db.get(
-        "rules",
-        infraction.ruleId,
+    const votes = await ctx.db
+      .query("infractionVotes")
+      .withIndex("by_infraction_and_voter", (q) =>
+        q.eq("infractionId", args.infractionId),
       )
+      .collect();
+
+    const yesVotes = votes.filter((vote) => vote.vote === "yes").length;
+
+    const noVotes = votes.filter((vote) => vote.vote === "no").length;
+
+    const rule = await ctx.db.get("rules", infraction.ruleId);
 
     if (!rule) {
-      throw new Error(
-        "Rule not found",
-      )
+      throw new Error("Rule not found");
     }
 
-    if (
-      yesVotes >=
-      rule.requiredApprovalsToConfirm
-    ) {
-      await ctx.db.patch(
-        "infractions",
-        infraction._id,
-        {
-          status:
-            "confirmed",
+    if (yesVotes >= rule.requiredApprovalsToConfirm) {
+      await ctx.db.patch("infractions", infraction._id, {
+        status: "confirmed",
 
-          resolvedAt:
-            Date.now(),
-        },
-      )
+        resolvedAt: Date.now(),
+      });
 
       await createLog(ctx, {
-        actorUserId:
-          identity.subject,
+        actorUserId: identity.subject,
 
-        action:
-          "infraction_confirmed",
+        action: "infraction_confirmed",
 
-        entityType:
-          "infraction",
+        entityType: "infraction",
 
-        entityId:
-          infraction._id,
+        entityId: infraction._id,
 
-        targetUserId:
-          infraction.accusedUserId,
+        targetUserId: infraction.accusedUserId,
 
         metadata: {
-          previousStatus:
-            "pending",
+          previousStatus: "pending",
 
-          newStatus:
-            "confirmed",
+          newStatus: "confirmed",
         },
-      })
-    } else if (
-      noVotes >=
-      rule.requiredApprovalsToConfirm
-    ) {
-      await ctx.db.patch(
-        "infractions",
-        infraction._id,
-        {
-          status:
-            "rejected",
+      });
+    } else if (noVotes >= rule.requiredApprovalsToConfirm) {
+      await ctx.db.patch("infractions", infraction._id, {
+        status: "rejected",
 
-          resolvedAt:
-            Date.now(),
-        },
-      )
+        resolvedAt: Date.now(),
+      });
 
       await createLog(ctx, {
-        actorUserId:
-          identity.subject,
+        actorUserId: identity.subject,
 
-        action:
-          "infraction_rejected",
+        action: "infraction_rejected",
 
-        entityType:
-          "infraction",
+        entityType: "infraction",
 
-        entityId:
-          infraction._id,
+        entityId: infraction._id,
 
-        targetUserId:
-          infraction.accusedUserId,
+        targetUserId: infraction.accusedUserId,
 
         metadata: {
-          previousStatus:
-            "pending",
+          previousStatus: "pending",
 
-          newStatus:
-            "rejected",
+          newStatus: "rejected",
         },
-      })
+      });
     }
 
     return {
       yesVotes,
       noVotes,
-    }
+    };
   },
-})
+});
 
 export const list = query({
   args: {},
 
   handler: async (ctx) => {
-    await requireIdentity(ctx)
+    await requireIdentity(ctx);
 
     const infractions = await ctx.db
       .query("infractions")
       .order("desc")
-      .collect()
+      .collect();
 
     return await Promise.all(
       infractions.map(async (infraction) => {
-        const rule = await ctx.db.get(
-          "rules",
-          infraction.ruleId,
-        )
+        const rule = await ctx.db.get("rules", infraction.ruleId);
 
         const accusedUser = await ctx.db
           .query("users")
-          .withIndex(
-            "by_clerk_user_id",
-            (q) =>
-              q.eq(
-                "clerkUserId",
-                infraction.accusedUserId,
-              ),
+          .withIndex("by_clerk_user_id", (q) =>
+            q.eq("clerkUserId", infraction.accusedUserId),
           )
-          .unique()
+          .unique();
 
         const reporterUser = await ctx.db
           .query("users")
-          .withIndex(
-            "by_clerk_user_id",
-            (q) =>
-              q.eq(
-                "clerkUserId",
-                infraction.reportedBy,
-              ),
+          .withIndex("by_clerk_user_id", (q) =>
+            q.eq("clerkUserId", infraction.reportedBy),
           )
-          .unique()
+          .unique();
 
         return {
           id: infraction._id,
@@ -649,8 +389,8 @@ export const list = query({
           status: infraction.status,
           createdAt: infraction.createdAt,
           resolvedAt: infraction.resolvedAt,
-        }
+        };
       }),
-    )
+    );
   },
-})
+});

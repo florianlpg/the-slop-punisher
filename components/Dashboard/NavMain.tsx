@@ -1,29 +1,27 @@
-"use client"
+"use client";
 
-import { usePathname } from 'next/navigation'
+import { usePathname } from "next/navigation";
 import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { QuickCreateDialog } from "@/components/Dashboard/QuickCreateDialog"
-import { CirclePlusIcon } from "lucide-react"
+} from "@/components/ui/sidebar";
+import { QuickCreateDialog } from "@/components/Dashboard/QuickCreateDialog";
 
-import Link from "next/link"
+import Link from "next/link";
 
 export function NavMain({
   items,
 }: {
   items: {
-    title: string
-    url: string
-    icon?: React.ReactNode
-  }[]
-  }) {
-  const pathname = usePathname()
-
+    title: string;
+    url: string;
+    icon?: React.ReactNode;
+  }[];
+}) {
+  const pathname = usePathname();
 
   return (
     <SidebarGroup>
@@ -45,11 +43,14 @@ export function NavMain({
               >
                 <SidebarMenuButton
                   style={{
-                    backgroundColor: pathname === item.url ? "var(--muted)" : "transparent",
+                    backgroundColor:
+                      pathname === item.url ? "var(--muted)" : "transparent",
                     borderRadius: "var(--radius)",
                   }}
 
-                  tooltip={item.title} className="cursor-pointer">
+                  tooltip={item.title}
+                  className="cursor-pointer"
+                >
                   {item.icon}
                   <span className="cursor-pointer">{item.title}</span>
                 </SidebarMenuButton>
@@ -59,5 +60,5 @@ export function NavMain({
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
+  );
 }

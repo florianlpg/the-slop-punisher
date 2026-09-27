@@ -1,6 +1,6 @@
-import { AppSidebar } from "@/components/Dashboard/AppSidebar"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
-import { ApprobationsTable } from "@/components/Approvals/ApprovalsTable/ApprovalsTable"
+import { AppSidebar } from "@/components/Dashboard/AppSidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { ApprobationsTable } from "@/components/Approvals/ApprovalsTable/ApprovalsTable";
 
 export default function Page() {
   return (
@@ -21,5 +21,5 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

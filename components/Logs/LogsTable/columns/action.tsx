@@ -1,13 +1,10 @@
-import { Badge } from "@/components/ui/badge"
+import { Badge } from "@/components/ui/badge";
 
-import type { LogTableRow } from "@/app/logs/types"
+import type { LogTableRow } from "@/app/logs/types";
 
-import { columnHelper } from "./helper"
+import { columnHelper } from "./helper";
 
-const actionLabels: Record<
-  LogTableRow["action"],
-  string
-> = {
+const actionLabels: Record<LogTableRow["action"], string> = {
   user_created: "Created user",
 
   rule_created: "Created rule",
@@ -28,28 +25,21 @@ const actionLabels: Record<
 
   login: "Logged in",
   logout: "Logged out",
-}
+};
 
-const entityLabels: Record<
-  LogTableRow["entityType"],
-  string
-> = {
+const entityLabels: Record<LogTableRow["entityType"], string> = {
   user: "User",
   rule: "Rule",
   infraction: "Infraction",
   transaction: "Transaction",
+};
+
+export function getActionLabel(action: LogTableRow["action"]) {
+  return actionLabels[action];
 }
 
-export function getActionLabel(
-  action: LogTableRow["action"],
-) {
-  return actionLabels[action]
-}
-
-export function getEntityLabel(
-  entityType: LogTableRow["entityType"],
-) {
-  return entityLabels[entityType]
+export function getEntityLabel(entityType: LogTableRow["entityType"]) {
+  return entityLabels[entityType];
 }
 
 export const actionColumn = columnHelper.accessor(
@@ -59,27 +49,20 @@ export const actionColumn = columnHelper.accessor(
     header: "Action",
 
     cell: ({ row }) => {
-      const action = row.original.action
+      const action = row.original.action;
 
       return (
         <div className="flex flex-col items-start gap-1">
-          <span className="font-medium">
-            {getActionLabel(action)}
-          </span>
+          <span className="font-medium">{getActionLabel(action)}</span>
 
-          <Badge
-            variant="secondary"
-            className="text-xs"
-          >
-            {getEntityLabel(
-              row.original.entityType,
-            )}
+          <Badge variant="secondary" className="text-xs">
+            {getEntityLabel(row.original.entityType)}
           </Badge>
         </div>
-      )
+      );
     },
 
     sortFn: "text",
     filterFn: "includesString",
   },
-)
+);

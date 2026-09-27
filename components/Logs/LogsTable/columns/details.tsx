@@ -1,53 +1,42 @@
-import type { LogTableRow } from "@/app/logs/types"
+import type { LogTableRow } from "@/app/logs/types";
 
-import { columnHelper } from "./helper"
+import { columnHelper } from "./helper";
 
-function formatAmount(
-  amountCents: number,
-) {
+function formatAmount(amountCents: number) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
-  }).format(amountCents / 100)
+  }).format(amountCents / 100);
 }
 
-export function getLogDetails(
-  log: LogTableRow,
-): string {
-  const metadata = log.metadata
+export function getLogDetails(log: LogTableRow): string {
+  const metadata = log.metadata;
 
   if (!metadata) {
-    return "—"
+    return "—";
   }
 
   if (metadata.vote) {
-    return metadata.vote === "yes"
-      ? "Voted yes"
-      : "Voted no"
+    return metadata.vote === "yes" ? "Voted yes" : "Voted no";
   }
 
   if (metadata.amountCents !== undefined) {
-    return formatAmount(
-      metadata.amountCents,
-    )
+    return formatAmount(metadata.amountCents);
   }
 
   if (metadata.description) {
-    return metadata.description
+    return metadata.description;
   }
 
   if (metadata.quantity !== undefined) {
-    return `Quantity: ${metadata.quantity}`
+    return `Quantity: ${metadata.quantity}`;
   }
 
-  if (
-    metadata.previousStatus &&
-    metadata.newStatus
-  ) {
-    return `${metadata.previousStatus} → ${metadata.newStatus}`
+  if (metadata.previousStatus && metadata.newStatus) {
+    return `${metadata.previousStatus} → ${metadata.newStatus}`;
   }
 
-  return "—"
+  return "—";
 }
 
 export const detailsColumn = columnHelper.accessor(
@@ -65,4 +54,4 @@ export const detailsColumn = columnHelper.accessor(
     sortFn: "text",
     filterFn: "includesString",
   },
-)
+);

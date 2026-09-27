@@ -1,9 +1,9 @@
-"use client"
+"use client";
 
-import dynamic from "next/dynamic"
-import { useState } from "react"
+import dynamic from "next/dynamic";
+import { useState } from "react";
 
-import { useUser } from "@clerk/nextjs"
+import { useUser } from "@clerk/nextjs";
 
 import {
   LayoutDashboardIcon,
@@ -13,10 +13,11 @@ import {
   SettingsIcon,
   VoteIcon,
   ThumbsDownIcon,
-} from "lucide-react"
+  UserIcon,
+} from "lucide-react";
 
-import { NavMain } from "@/components/Dashboard/NavMain"
-import { NavUser } from "@/components/Dashboard/NavUser"
+import { NavMain } from "@/components/Dashboard/NavMain";
+import { NavUser } from "@/components/Dashboard/NavUser";
 
 import {
   Sidebar,
@@ -26,7 +27,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 const AccountDialog = dynamic(
   () =>
@@ -36,7 +37,7 @@ const AccountDialog = dynamic(
   {
     ssr: false,
   },
-)
+);
 
 const data = {
   navMain: [
@@ -61,6 +62,11 @@ const data = {
       icon: <BanknoteIcon />,
     },
     {
+      title: "Profile",
+      url: "/profile",
+      icon: <UserIcon />,
+    },
+    {
       title: "Rules",
       url: "/rules",
       icon: <SettingsIcon />,
@@ -71,28 +77,20 @@ const data = {
       icon: <LogsIcon />,
     },
   ],
-}
+};
 
-export function AppSidebar(
-  props: React.ComponentProps<typeof Sidebar>,
-) {
-  const { user, isLoaded } = useUser()
+export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+  const { user, isLoaded } = useUser();
 
-  const [
-    isAccountDialogOpen,
-    setIsAccountDialogOpen,
-  ] = useState(false)
+  const [isAccountDialogOpen, setIsAccountDialogOpen] = useState(false);
 
   const displayUser =
     isLoaded && user
       ? {
-          name:
-            user.fullName ??
-            user.username ??
-            "User",
+          name: user.fullName ?? user.username ?? "User",
           avatar: user.imageUrl,
         }
-      : null
+      : null;
 
   return (
     <>
@@ -101,10 +99,7 @@ export function AppSidebar(
         setOpen={setIsAccountDialogOpen}
       />
 
-      <Sidebar
-        collapsible="offcanvas"
-        {...props}
-      >
+      <Sidebar collapsible="offcanvas" {...props}>
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>
@@ -114,9 +109,7 @@ export function AppSidebar(
               >
                 <SkullIcon className="size-5!" />
 
-                <span className="text-base font-semibold">
-                  Slop Punisher
-                </span>
+                <span className="text-base font-semibold">Slop Punisher</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -129,15 +122,11 @@ export function AppSidebar(
         <SidebarFooter>
           <NavUser
             user={displayUser}
-            isUserAccountClicked={
-              isAccountDialogOpen
-            }
-            setIsUserAccountClicked={
-              setIsAccountDialogOpen
-            }
+            isUserAccountClicked={isAccountDialogOpen}
+            setIsUserAccountClicked={setIsAccountDialogOpen}
           />
         </SidebarFooter>
       </Sidebar>
     </>
-  )
+  );
 }

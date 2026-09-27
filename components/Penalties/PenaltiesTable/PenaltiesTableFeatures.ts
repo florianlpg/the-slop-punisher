@@ -8,7 +8,7 @@ import {
   sortFn_alphanumeric,
   sortFn_text,
   tableFeatures,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
 export const penaltiesTableFeatures = tableFeatures({
   columnFilteringFeature,
@@ -23,7 +23,6 @@ export const penaltiesTableFeatures = tableFeatures({
     alphanumeric: sortFn_alphanumeric,
     text: sortFn_text,
   },
-})
+});
 
-export type PenaltiesTableFeatures =
-  typeof penaltiesTableFeatures
+export type PenaltiesTableFeatures = typeof penaltiesTableFeatures;

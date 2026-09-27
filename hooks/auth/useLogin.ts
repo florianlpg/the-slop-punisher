@@ -28,11 +28,7 @@ type UseLoginReturn = {
 };
 
 function getErrorMessage(error: unknown): string {
-  if (
-    error &&
-    typeof error === "object" &&
-    "errors" in error
-  ) {
+  if (error && typeof error === "object" && "errors" in error) {
     const response = error as ClerkErrorResponse;
     const firstError = response.errors?.[0];
 
@@ -43,10 +39,7 @@ function getErrorMessage(error: unknown): string {
         longMessage: firstError.longMessage,
       });
 
-      return [
-        firstError.code,
-        firstError.longMessage ?? firstError.message,
-      ]
+      return [firstError.code, firstError.longMessage ?? firstError.message]
         .filter(Boolean)
         .join(": ");
     }
@@ -65,10 +58,7 @@ function getErrorMessage(error: unknown): string {
 export function useLogin(): UseLoginReturn {
   const router = useRouter();
 
-  const {
-    signIn,
-    isLoaded: isSignInLoaded,
-  } = useSignIn();
+  const { signIn, isLoaded: isSignInLoaded } = useSignIn();
 
   const { setActive } = useClerk();
 
@@ -96,16 +86,12 @@ export function useLogin(): UseLoginReturn {
       });
 
       if (result.status !== "complete") {
-        setError(
-          `Clerk sign-in is not complete. Status: ${result.status}`,
-        );
+        setError(`Clerk sign-in is not complete. Status: ${result.status}`);
         return;
       }
 
       if (!result.createdSessionId) {
-        setError(
-          "Clerk sign-in completed but no session ID was returned.",
-        );
+        setError("Clerk sign-in completed but no session ID was returned.");
         return;
       }
 

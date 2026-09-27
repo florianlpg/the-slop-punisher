@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useMemo, useState } from "react"
-import { useQuery } from "convex/react"
-import { api } from "@/convex/_generated/api"
+import { useMemo, useState } from "react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -12,149 +12,112 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/table";
 
 export function PenaltiesTable() {
-  const penalties = useQuery(api.infractions.list)
+  const penalties = useQuery(api.infractions.list);
 
-  const [ruleFilter, setRuleFilter] = useState("all")
-  const [userFilter, setUserFilter] = useState("all")
-  const [reporterFilter, setReporterFilter] = useState("all")
-  const [statusFilter, setStatusFilter] = useState("all")
+  const [ruleFilter, setRuleFilter] = useState("all");
+  const [userFilter, setUserFilter] = useState("all");
+  const [reporterFilter, setReporterFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const rules = useMemo(() => {
-    if (!penalties) return []
+    if (!penalties) return [];
 
     return Array.from(
       new Map(
         penalties
           .filter((penalty) => penalty.rule)
-          .map((penalty) => [
-            penalty.ruleId,
-            penalty.rule,
-          ]),
+          .map((penalty) => [penalty.ruleId, penalty.rule]),
       ).values(),
-    )
-  }, [penalties])
+    );
+  }, [penalties]);
 
   const users = useMemo(() => {
-    if (!penalties) return []
+    if (!penalties) return [];
 
     return Array.from(
       new Map(
         penalties
           .filter((penalty) => penalty.accusedUser)
-          .map((penalty) => [
-            penalty.accusedUserId,
-            penalty.accusedUser,
-          ]),
+          .map((penalty) => [penalty.accusedUserId, penalty.accusedUser]),
       ).values(),
-    )
-  }, [penalties])
+    );
+  }, [penalties]);
 
   const reporters = useMemo(() => {
-    if (!penalties) return []
+    if (!penalties) return [];
 
     return Array.from(
       new Map(
         penalties
           .filter((penalty) => penalty.reporterUser)
-          .map((penalty) => [
-            penalty.reportedBy,
-            penalty.reporterUser,
-          ]),
+          .map((penalty) => [penalty.reportedBy, penalty.reporterUser]),
       ).values(),
-    )
-  }, [penalties])
+    );
+  }, [penalties]);
 
   const filteredPenalties = useMemo(() => {
-    if (!penalties) return []
+    if (!penalties) return [];
 
     return penalties.filter((penalty) => {
-      if (
-        ruleFilter !== "all" &&
-        penalty.ruleId !== ruleFilter
-      ) {
-        return false
+      if (ruleFilter !== "all" && penalty.ruleId !== ruleFilter) {
+        return false;
       }
 
-      if (
-        userFilter !== "all" &&
-        penalty.accusedUserId !== userFilter
-      ) {
-        return false
+      if (userFilter !== "all" && penalty.accusedUserId !== userFilter) {
+        return false;
       }
 
-      if (
-        reporterFilter !== "all" &&
-        penalty.reportedBy !== reporterFilter
-      ) {
-        return false
+      if (reporterFilter !== "all" && penalty.reportedBy !== reporterFilter) {
+        return false;
       }
 
-      if (
-        statusFilter !== "all" &&
-        penalty.status !== statusFilter
-      ) {
-        return false
+      if (statusFilter !== "all" && penalty.status !== statusFilter) {
+        return false;
       }
 
-      return true
-    })
-  }, [
-    penalties,
-    ruleFilter,
-    userFilter,
-    reporterFilter,
-    statusFilter,
-  ])
+      return true;
+    });
+  }, [penalties, ruleFilter, userFilter, reporterFilter, statusFilter]);
 
   const hasFilters =
     ruleFilter !== "all" ||
     userFilter !== "all" ||
     reporterFilter !== "all" ||
-    statusFilter !== "all"
+    statusFilter !== "all";
 
   const clearFilters = () => {
-    setRuleFilter("all")
-    setUserFilter("all")
-    setReporterFilter("all")
-    setStatusFilter("all")
-  }
+    setRuleFilter("all");
+    setUserFilter("all");
+    setReporterFilter("all");
+    setStatusFilter("all");
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Penalties
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Penalties</h1>
 
         <p className="text-muted-foreground">
-          Review and filter every penalty recorded in the
-          application.
+          Review and filter every penalty recorded in the application.
         </p>
       </div>
 
       <div className="flex flex-wrap items-end gap-3">
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">
-            Rule
-          </label>
+          <label className="text-sm font-medium">Rule</label>
 
           <select
             value={ruleFilter}
-            onChange={(event) =>
-              setRuleFilter(event.target.value)
-            }
+            onChange={(event) => setRuleFilter(event.target.value)}
             className="h-9 min-w-48 rounded-md border bg-background px-3 text-sm"
           >
             <option value="all">All rules</option>
 
             {rules.map((rule) => (
-              <option
-                key={rule?._id}
-                value={rule?._id}
-              >
+              <option key={rule?._id} value={rule?._id}>
                 {rule?.description}
               </option>
             ))}
@@ -162,69 +125,47 @@ export function PenaltiesTable() {
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">
-            User
-          </label>
+          <label className="text-sm font-medium">User</label>
 
           <select
             value={userFilter}
-            onChange={(event) =>
-              setUserFilter(event.target.value)
-            }
+            onChange={(event) => setUserFilter(event.target.value)}
             className="h-9 min-w-48 rounded-md border bg-background px-3 text-sm"
           >
             <option value="all">All users</option>
 
             {users.map((user) => (
-              <option
-                key={user?.clerkUserId}
-                value={user?.clerkUserId}
-              >
-                {user?.name ??
-                  user?.username ??
-                  "Unknown user"}
+              <option key={user?.clerkUserId} value={user?.clerkUserId}>
+                {user?.name ?? user?.username ?? "Unknown user"}
               </option>
             ))}
           </select>
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">
-            Reporter
-          </label>
+          <label className="text-sm font-medium">Reporter</label>
 
           <select
             value={reporterFilter}
-            onChange={(event) =>
-              setReporterFilter(event.target.value)
-            }
+            onChange={(event) => setReporterFilter(event.target.value)}
             className="h-9 min-w-48 rounded-md border bg-background px-3 text-sm"
           >
             <option value="all">All reporters</option>
 
             {reporters.map((user) => (
-              <option
-                key={user?.clerkUserId}
-                value={user?.clerkUserId}
-              >
-                {user?.name ??
-                  user?.username ??
-                  "Unknown user"}
+              <option key={user?.clerkUserId} value={user?.clerkUserId}>
+                {user?.name ?? user?.username ?? "Unknown user"}
               </option>
             ))}
           </select>
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <label className="text-sm font-medium">
-            Status
-          </label>
+          <label className="text-sm font-medium">Status</label>
 
           <select
             value={statusFilter}
-            onChange={(event) =>
-              setStatusFilter(event.target.value)
-            }
+            onChange={(event) => setStatusFilter(event.target.value)}
             className="h-9 min-w-36 rounded-md border bg-background px-3 text-sm"
           >
             <option value="all">All statuses</option>
@@ -235,10 +176,7 @@ export function PenaltiesTable() {
         </div>
 
         {hasFilters && (
-          <Button
-            variant="outline"
-            onClick={clearFilters}
-          >
+          <Button variant="outline" onClick={clearFilters}>
             Clear filters
           </Button>
         )}
@@ -262,8 +200,7 @@ export function PenaltiesTable() {
             {filteredPenalties.map((penalty) => (
               <TableRow key={penalty.id}>
                 <TableCell>
-                  {penalty.rule?.description ??
-                    "Unknown rule"}
+                  {penalty.rule?.description ?? "Unknown rule"}
                 </TableCell>
 
                 <TableCell>
@@ -278,30 +215,21 @@ export function PenaltiesTable() {
                     "Unknown user"}
                 </TableCell>
 
+                <TableCell>{penalty.quantity}</TableCell>
+
                 <TableCell>
-                  {penalty.quantity}
+                  {(penalty.amountCents / 100).toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "EUR",
+                  })}
                 </TableCell>
 
                 <TableCell>
-                  {(penalty.amountCents / 100).toLocaleString(
-                    "en-US",
-                    {
-                      style: "currency",
-                      currency: "EUR",
-                    },
-                  )}
+                  <span className="capitalize">{penalty.status}</span>
                 </TableCell>
 
                 <TableCell>
-                  <span className="capitalize">
-                    {penalty.status}
-                  </span>
-                </TableCell>
-
-                <TableCell>
-                  {new Date(
-                    penalty.createdAt,
-                  ).toLocaleDateString()}
+                  {new Date(penalty.createdAt).toLocaleDateString()}
                 </TableCell>
               </TableRow>
             ))}
@@ -324,5 +252,5 @@ export function PenaltiesTable() {
         </Table>
       </div>
     </div>
-  )
+  );
 }

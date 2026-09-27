@@ -11,6 +11,7 @@
 import type * as dashboard from "../dashboard.js";
 import type * as infractions from "../infractions.js";
 import type * as logs from "../logs.js";
+import type * as profile from "../profile.js";
 import type * as rules from "../rules.js";
 import type * as transactions from "../transactions.js";
 import type * as users from "../users.js";
@@ -25,6 +26,7 @@ declare const fullApi: ApiFromModules<{
   dashboard: typeof dashboard;
   infractions: typeof infractions;
   logs: typeof logs;
+  profile: typeof profile;
   rules: typeof rules;
   transactions: typeof transactions;
   users: typeof users;

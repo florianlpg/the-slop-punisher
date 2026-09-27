@@ -1,25 +1,21 @@
-import { columnHelper } from "./helper"
+import { columnHelper } from "./helper";
 
-export const approvalsColumn =
-  columnHelper.accessor(
-    (row): unknown => row.yesVotes,
-    {
-      id: "approvals",
-      header: "Approvals",
+export const approvalsColumn = columnHelper.accessor(
+  (row): unknown => row.yesVotes,
+  {
+    id: "approvals",
+    header: "Approvals",
 
-      cell: ({ row }) => {
-        const {
-          yesVotes,
-          requiredApprovals,
-        } = row.original
+    cell: ({ row }) => {
+      const { yesVotes, requiredApprovals } = row.original;
 
-        return (
-          <span>
-            {yesVotes} / {requiredApprovals}
-          </span>
-        )
-      },
-
-      sortFn: "alphanumeric",
+      return (
+        <span>
+          {yesVotes} / {requiredApprovals}
+        </span>
+      );
     },
-  )
+
+    sortFn: "alphanumeric",
+  },
+);

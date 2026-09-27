@@ -1,56 +1,39 @@
-import { v } from "convex/values"
+import { v } from "convex/values";
 
 import {
   mutation,
   query,
   type MutationCtx,
   type QueryCtx,
-} from "./_generated/server"
+} from "./_generated/server";
 
-import { createLog } from "./logs"
+import { createLog } from "./logs";
 
-async function requireIdentity(
-  ctx: QueryCtx | MutationCtx,
-) {
-  const identity =
-    await ctx.auth.getUserIdentity()
+async function requireIdentity(ctx: QueryCtx | MutationCtx) {
+  const identity = await ctx.auth.getUserIdentity();
 
   if (!identity) {
-    throw new Error(
-      "Not authenticated",
-    )
+    throw new Error("Not authenticated");
   }
 
-  return identity
+  return identity;
 }
 
 function getUserDisplayName(
-  user:
-    | {
-        firstName?: string
-        lastName?: string
-        name?: string
-        username?: string
-      }
-    | null,
+  user: {
+    firstName?: string;
+    lastName?: string;
+    name?: string;
+    username?: string;
+  } | null,
 ) {
   if (!user) {
-    return "Unknown user"
+    return "Unknown user";
   }
 
-  const fullName = [
-    user.firstName,
-    user.lastName,
-  ]
-    .filter(Boolean)
-    .join(" ")
+  const fullName = [user.firstName, user.lastName].filter(Boolean).join(" ");
 
-  return (
-    fullName ||
-    user.name ||
-    user.username ||
-    "Unknown user"
-  )
+  return fullName || user.name || user.username || "Unknown user";
 }
 
 /**
@@ -61,117 +44,72 @@ function getUserDisplayName(
  */
 export const create = mutation({
   args: {
-    userId:
-      v.string(),
+    userId: v.string(),
 
-    amountCents:
-      v.number(),
+    amountCents: v.number(),
   },
 
   handler: async (ctx, args) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    if (
-      args.amountCents <= 0
-    ) {
-      throw new Error(
-        "Transaction amount must be greater than zero",
-      )
+    if (args.amountCents <= 0) {
+      throw new Error("Transaction amount must be greater than zero");
     }
 
-    const user =
-      await ctx.db
-        .query("users")
-        .withIndex(
-          "by_clerk_user_id",
-          (q) =>
-            q.eq(
-              "clerkUserId",
-              args.userId,
-            ),
-        )
-        .unique()
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerk_user_id", (q) => q.eq("clerkUserId", args.userId))
+      .unique();
 
     if (!user) {
-      throw new Error(
-        "User not found",
-      )
+      throw new Error("User not found");
     }
 
-    const totalMembers =
-      (
-        await ctx.db
-          .query("users")
-          .collect()
-      ).length
+    const totalMembers = (await ctx.db.query("users").collect()).length;
 
-    if (
-      totalMembers <= 0
-    ) {
-      throw new Error(
-        "There are no users available for approval",
-      )
+    if (totalMembers <= 0) {
+      throw new Error("There are no users available for approval");
     }
 
-    const now =
-      Date.now()
+    const now = Date.now();
 
-    const transactionId =
-      await ctx.db.insert(
-        "transactions",
-        {
-          userId:
-            args.userId,
+    const transactionId = await ctx.db.insert("transactions", {
+      userId: args.userId,
 
-          amountCents:
-            args.amountCents,
+      amountCents: args.amountCents,
 
-          paymentMethod:
-            "cash",
+      paymentMethod: "cash",
 
-          status:
-            "pending",
+      status: "pending",
 
-          createdBy:
-            identity.subject,
+      createdBy: identity.subject,
 
-          createdAt:
-            now,
+      createdAt: now,
 
-          requiredApprovals:
-            totalMembers,
-        },
-      )
+      requiredApprovals: totalMembers,
+    });
 
     await createLog(ctx, {
-      actorUserId:
-        identity.subject,
+      actorUserId: identity.subject,
 
-      action:
-        "transaction_created",
+      action: "transaction_created",
 
-      entityType:
-        "transaction",
+      entityType: "transaction",
 
-      entityId:
-        transactionId,
+      entityId: transactionId,
 
-      targetUserId:
-        args.userId,
+      targetUserId: args.userId,
 
       metadata: {
-        amountCents:
-          args.amountCents,
+        amountCents: args.amountCents,
 
-        newStatus:
-          "pending",
+        newStatus: "pending",
       },
-    })
+    });
 
-    return transactionId
+    return transactionId;
   },
-})
+});
 
 /**
  * Return all transactions.
@@ -180,108 +118,63 @@ export const list = query({
   args: {},
 
   handler: async (ctx) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    const transactions =
-      await ctx.db
-        .query("transactions")
-        .order("desc")
-        .collect()
+    const transactions = await ctx.db
+      .query("transactions")
+      .order("desc")
+      .collect();
 
     return await Promise.all(
-      transactions.map(
-        async (
-          transaction,
-        ) => {
-          const user =
-            await ctx.db
-              .query("users")
-              .withIndex(
-                "by_clerk_user_id",
-                (q) =>
-                  q.eq(
-                    "clerkUserId",
-                    transaction.userId,
-                  ),
-              )
-              .unique()
+      transactions.map(async (transaction) => {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_clerk_user_id", (q) =>
+            q.eq("clerkUserId", transaction.userId),
+          )
+          .unique();
 
-          const creator =
-            await ctx.db
-              .query("users")
-              .withIndex(
-                "by_clerk_user_id",
-                (q) =>
-                  q.eq(
-                    "clerkUserId",
-                    transaction.createdBy,
-                  ),
-              )
-              .unique()
+        const creator = await ctx.db
+          .query("users")
+          .withIndex("by_clerk_user_id", (q) =>
+            q.eq("clerkUserId", transaction.createdBy),
+          )
+          .unique();
 
-          const votes =
-            await ctx.db
-              .query(
-                "transactionVotes",
-              )
-              .withIndex(
-                "by_transaction_and_voter",
-                (q) =>
-                  q.eq(
-                    "transactionId",
-                    transaction._id,
-                  ),
-              )
-              .collect()
+        const votes = await ctx.db
+          .query("transactionVotes")
+          .withIndex("by_transaction_and_voter", (q) =>
+            q.eq("transactionId", transaction._id),
+          )
+          .collect();
 
-          const yesVotes =
-            votes.filter(
-              (vote) =>
-                vote.vote ===
-                "yes",
-            ).length
+        const yesVotes = votes.filter((vote) => vote.vote === "yes").length;
 
-          const noVotes =
-            votes.filter(
-              (vote) =>
-                vote.vote ===
-                "no",
-            ).length
+        const noVotes = votes.filter((vote) => vote.vote === "no").length;
 
-          return {
-            ...transaction,
+        return {
+          ...transaction,
 
-            user,
+          user,
 
-            creator,
+          creator,
 
-            userDisplayName:
-              getUserDisplayName(
-                user,
-              ),
+          userDisplayName: getUserDisplayName(user),
 
-            creatorDisplayName:
-              getUserDisplayName(
-                creator,
-              ),
+          creatorDisplayName: getUserDisplayName(creator),
 
-            yesVotes,
+          yesVotes,
 
-            noVotes,
+          noVotes,
 
-            currentUserVote:
-              votes.find(
-                (vote) =>
-                  vote.voterUserId ===
-                  identity.subject,
-              )?.vote ?? null,
-          }
-        },
-      ),
-    )
+          currentUserVote:
+            votes.find((vote) => vote.voterUserId === identity.subject)?.vote ??
+            null,
+        };
+      }),
+    );
   },
-})
+});
 
 /**
  * Return pending transactions requiring approval.
@@ -290,118 +183,66 @@ export const approvals = query({
   args: {},
 
   handler: async (ctx) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    const transactions =
-      await ctx.db
-        .query("transactions")
-        .withIndex(
-          "by_status",
-          (q) =>
-            q.eq(
-              "status",
-              "pending",
-            ),
-        )
-        .order("desc")
-        .collect()
+    const transactions = await ctx.db
+      .query("transactions")
+      .withIndex("by_status", (q) => q.eq("status", "pending"))
+      .order("desc")
+      .collect();
 
     return await Promise.all(
-      transactions.map(
-        async (
-          transaction,
-        ) => {
-          const user =
-            await ctx.db
-              .query("users")
-              .withIndex(
-                "by_clerk_user_id",
-                (q) =>
-                  q.eq(
-                    "clerkUserId",
-                    transaction.userId,
-                  ),
-              )
-              .unique()
+      transactions.map(async (transaction) => {
+        const user = await ctx.db
+          .query("users")
+          .withIndex("by_clerk_user_id", (q) =>
+            q.eq("clerkUserId", transaction.userId),
+          )
+          .unique();
 
-          const creator =
-            await ctx.db
-              .query("users")
-              .withIndex(
-                "by_clerk_user_id",
-                (q) =>
-                  q.eq(
-                    "clerkUserId",
-                    transaction.createdBy,
-                  ),
-              )
-              .unique()
+        const creator = await ctx.db
+          .query("users")
+          .withIndex("by_clerk_user_id", (q) =>
+            q.eq("clerkUserId", transaction.createdBy),
+          )
+          .unique();
 
-          const votes =
-            await ctx.db
-              .query(
-                "transactionVotes",
-              )
-              .withIndex(
-                "by_transaction_and_voter",
-                (q) =>
-                  q.eq(
-                    "transactionId",
-                    transaction._id,
-                  ),
-              )
-              .collect()
+        const votes = await ctx.db
+          .query("transactionVotes")
+          .withIndex("by_transaction_and_voter", (q) =>
+            q.eq("transactionId", transaction._id),
+          )
+          .collect();
 
-          const yesVotes =
-            votes.filter(
-              (vote) =>
-                vote.vote ===
-                "yes",
-            ).length
+        const yesVotes = votes.filter((vote) => vote.vote === "yes").length;
 
-          const noVotes =
-            votes.filter(
-              (vote) =>
-                vote.vote ===
-                "no",
-            ).length
+        const noVotes = votes.filter((vote) => vote.vote === "no").length;
 
-          const currentUserVote =
-            votes.find(
-              (vote) =>
-                vote.voterUserId ===
-                identity.subject,
-            )?.vote ?? null
+        const currentUserVote =
+          votes.find((vote) => vote.voterUserId === identity.subject)?.vote ??
+          null;
 
-          return {
-            ...transaction,
+        return {
+          ...transaction,
 
-            user,
+          user,
 
-            creator,
+          creator,
 
-            userDisplayName:
-              getUserDisplayName(
-                user,
-              ),
+          userDisplayName: getUserDisplayName(user),
 
-            creatorDisplayName:
-              getUserDisplayName(
-                creator,
-              ),
+          creatorDisplayName: getUserDisplayName(creator),
 
-            yesVotes,
+          yesVotes,
 
-            noVotes,
+          noVotes,
 
-            currentUserVote,
-          }
-        },
-      ),
-    )
+          currentUserVote,
+        };
+      }),
+    );
   },
-})
+});
 
 /**
  * Vote on a transaction.
@@ -411,224 +252,131 @@ export const approvals = query({
  */
 export const vote = mutation({
   args: {
-    transactionId:
-      v.id("transactions"),
+    transactionId: v.id("transactions"),
 
-    vote: v.union(
-      v.literal("yes"),
-      v.literal("no"),
-    ),
+    vote: v.union(v.literal("yes"), v.literal("no")),
   },
 
   handler: async (ctx, args) => {
-    const identity =
-      await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx);
 
-    const transaction =
-      await ctx.db.get(
-        "transactions",
-        args.transactionId,
-      )
+    const transaction = await ctx.db.get("transactions", args.transactionId);
 
     if (!transaction) {
-      throw new Error(
-        "Transaction not found",
-      )
+      throw new Error("Transaction not found");
     }
 
-    if (
-      transaction.status !==
-      "pending"
-    ) {
-      throw new Error(
-        "This transaction is no longer pending",
-      )
+    if (transaction.status !== "pending") {
+      throw new Error("This transaction is no longer pending");
     }
 
-    const existingVote =
-      await ctx.db
-        .query(
-          "transactionVotes",
-        )
-        .withIndex(
-          "by_transaction_and_voter",
-          (q) =>
-            q
-              .eq(
-                "transactionId",
-                args.transactionId,
-              )
-              .eq(
-                "voterUserId",
-                identity.subject,
-              ),
-        )
-        .unique()
+    const existingVote = await ctx.db
+      .query("transactionVotes")
+      .withIndex("by_transaction_and_voter", (q) =>
+        q
+          .eq("transactionId", args.transactionId)
+          .eq("voterUserId", identity.subject),
+      )
+      .unique();
 
     if (existingVote) {
-      await ctx.db.patch(
-        "transactionVotes",
-        existingVote._id,
-        {
-          vote:
-            args.vote,
+      await ctx.db.patch("transactionVotes", existingVote._id, {
+        vote: args.vote,
 
-          votedAt:
-            Date.now(),
-        },
-      )
+        votedAt: Date.now(),
+      });
     } else {
-      await ctx.db.insert(
-        "transactionVotes",
-        {
-          transactionId:
-            args.transactionId,
+      await ctx.db.insert("transactionVotes", {
+        transactionId: args.transactionId,
 
-          voterUserId:
-            identity.subject,
+        voterUserId: identity.subject,
 
-          vote:
-            args.vote,
+        vote: args.vote,
 
-          votedAt:
-            Date.now(),
-        },
-      )
+        votedAt: Date.now(),
+      });
     }
 
     await createLog(ctx, {
-      actorUserId:
-        identity.subject,
+      actorUserId: identity.subject,
 
-      action:
-        "transaction_vote",
+      action: "transaction_vote",
 
-      entityType:
-        "transaction",
+      entityType: "transaction",
 
-      entityId:
-        args.transactionId,
+      entityId: args.transactionId,
 
-      targetUserId:
-        transaction.userId,
+      targetUserId: transaction.userId,
 
       metadata: {
-        vote:
-          args.vote,
+        vote: args.vote,
       },
-    })
+    });
 
-    const votes =
-      await ctx.db
-        .query(
-          "transactionVotes",
-        )
-        .withIndex(
-          "by_transaction_and_voter",
-          (q) =>
-            q.eq(
-              "transactionId",
-              args.transactionId,
-            ),
-        )
-        .collect()
+    const votes = await ctx.db
+      .query("transactionVotes")
+      .withIndex("by_transaction_and_voter", (q) =>
+        q.eq("transactionId", args.transactionId),
+      )
+      .collect();
 
-    const yesVotes =
-      votes.filter(
-        (vote) =>
-          vote.vote ===
-          "yes",
-      ).length
+    const yesVotes = votes.filter((vote) => vote.vote === "yes").length;
 
-    const noVotes =
-      votes.filter(
-        (vote) =>
-          vote.vote ===
-          "no",
-      ).length
+    const noVotes = votes.filter((vote) => vote.vote === "no").length;
 
     if (noVotes > 0) {
-      await ctx.db.patch(
-        "transactions",
-        transaction._id,
-        {
-          status:
-            "rejected",
+      await ctx.db.patch("transactions", transaction._id, {
+        status: "rejected",
 
-          resolvedAt:
-            Date.now(),
-        },
-      )
+        resolvedAt: Date.now(),
+      });
 
       await createLog(ctx, {
-        actorUserId:
-          identity.subject,
+        actorUserId: identity.subject,
 
-        action:
-          "transaction_rejected",
+        action: "transaction_rejected",
 
-        entityType:
-          "transaction",
+        entityType: "transaction",
 
-        entityId:
-          transaction._id,
+        entityId: transaction._id,
 
-        targetUserId:
-          transaction.userId,
+        targetUserId: transaction.userId,
 
         metadata: {
-          previousStatus:
-            "pending",
+          previousStatus: "pending",
 
-          newStatus:
-            "rejected",
+          newStatus: "rejected",
         },
-      })
-    } else if (
-      yesVotes >=
-      transaction.requiredApprovals
-    ) {
-      await ctx.db.patch(
-        "transactions",
-        transaction._id,
-        {
-          status:
-            "confirmed",
+      });
+    } else if (yesVotes >= transaction.requiredApprovals) {
+      await ctx.db.patch("transactions", transaction._id, {
+        status: "confirmed",
 
-          resolvedAt:
-            Date.now(),
-        },
-      )
+        resolvedAt: Date.now(),
+      });
 
       await createLog(ctx, {
-        actorUserId:
-          identity.subject,
+        actorUserId: identity.subject,
 
-        action:
-          "transaction_confirmed",
+        action: "transaction_confirmed",
 
-        entityType:
-          "transaction",
+        entityType: "transaction",
 
-        entityId:
-          transaction._id,
+        entityId: transaction._id,
 
-        targetUserId:
-          transaction.userId,
+        targetUserId: transaction.userId,
 
         metadata: {
-          previousStatus:
-            "pending",
+          previousStatus: "pending",
 
-          newStatus:
-            "confirmed",
+          newStatus: "confirmed",
         },
-      })
+      });
     }
 
     return {
       yesVotes,
       noVotes,
-    }
+    };
   },
-})
+});

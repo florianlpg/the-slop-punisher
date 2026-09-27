@@ -1,7 +1,7 @@
-import { AppSidebar } from "@/components/Dashboard/AppSidebar"
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { AppSidebar } from "@/components/Dashboard/AppSidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
-import { RulesTable } from "@/components/Rules/RulesTable/RulesTable"
+import { RulesTable } from "@/components/Rules/RulesTable/RulesTable";
 
 export default function Page() {
   return (
@@ -22,5 +22,5 @@ export default function Page() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }

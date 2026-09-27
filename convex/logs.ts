@@ -1,20 +1,16 @@
-import { paginationOptsValidator } from "convex/server"
-import { v } from "convex/values"
+import { paginationOptsValidator } from "convex/server";
+import { v } from "convex/values";
 
-import {
-  query,
-  type MutationCtx,
-  type QueryCtx,
-} from "./_generated/server"
+import { query, type MutationCtx, type QueryCtx } from "./_generated/server";
 
 async function requireIdentity(ctx: QueryCtx) {
-  const identity = await ctx.auth.getUserIdentity()
+  const identity = await ctx.auth.getUserIdentity();
 
   if (!identity) {
-    throw new Error("Not authenticated")
+    throw new Error("Not authenticated");
   }
 
-  return identity
+  return identity;
 }
 
 type LogAction =
@@ -33,36 +29,29 @@ type LogAction =
   | "transaction_confirmed"
   | "transaction_rejected"
   | "login"
-  | "logout"
+  | "logout";
 
-type LogEntityType =
-  | "user"
-  | "rule"
-  | "infraction"
-  | "transaction"
+type LogEntityType = "user" | "rule" | "infraction" | "transaction";
 
 type LogMetadata = {
-  description?: string
-  amountCents?: number
-  quantity?: number
-  vote?: "yes" | "no"
-  previousStatus?: string
-  newStatus?: string
-}
+  description?: string;
+  amountCents?: number;
+  quantity?: number;
+  vote?: "yes" | "no";
+  previousStatus?: string;
+  newStatus?: string;
+};
 
 type CreateLogArgs = {
-  actorUserId: string
-  action: LogAction
-  entityType: LogEntityType
-  entityId?: string
-  targetUserId?: string
-  metadata?: LogMetadata
-}
+  actorUserId: string;
+  action: LogAction;
+  entityType: LogEntityType;
+  entityId?: string;
+  targetUserId?: string;
+  metadata?: LogMetadata;
+};
 
-export async function createLog(
-  ctx: MutationCtx,
-  args: CreateLogArgs,
-) {
+export async function createLog(ctx: MutationCtx, args: CreateLogArgs) {
   return await ctx.db.insert("logs", {
     actorUserId: args.actorUserId,
     action: args.action,
@@ -71,7 +60,7 @@ export async function createLog(
     targetUserId: args.targetUserId,
     metadata: args.metadata,
     createdAt: Date.now(),
-  })
+  });
 }
 
 const logAction = v.union(
@@ -91,14 +80,14 @@ const logAction = v.union(
   v.literal("transaction_rejected"),
   v.literal("login"),
   v.literal("logout"),
-)
+);
 
 const logEntityType = v.union(
   v.literal("user"),
   v.literal("rule"),
   v.literal("infraction"),
   v.literal("transaction"),
-)
+);
 
 export const list = query({
   args: {
@@ -106,13 +95,13 @@ export const list = query({
   },
 
   handler: async (ctx, args) => {
-    await requireIdentity(ctx)
+    await requireIdentity(ctx);
 
     const logs = await ctx.db
       .query("logs")
       .withIndex("by_created_at")
       .order("desc")
-      .paginate(args.paginationOpts)
+      .paginate(args.paginationOpts);
 
     const page = await Promise.all(
       logs.page.map(async (log) => {
@@ -121,19 +110,16 @@ export const list = query({
           .withIndex("by_clerk_user_id", (q) =>
             q.eq("clerkUserId", log.actorUserId),
           )
-          .unique()
+          .unique();
 
         const targetUser = log.targetUserId
           ? await ctx.db
               .query("users")
               .withIndex("by_clerk_user_id", (q) =>
-                q.eq(
-                  "clerkUserId",
-                  log.targetUserId!,
-                ),
+                q.eq("clerkUserId", log.targetUserId!),
               )
               .unique()
-          : null
+          : null;
 
         return {
           ...log,
@@ -159,16 +145,16 @@ export const list = query({
                 name: targetUser.name,
               }
             : null,
-        }
+        };
       }),
-    )
+    );
 
     return {
       ...logs,
       page,
-    }
+    };
   },
-})
+});
 
 export const byEntity = query({
   args: {
@@ -177,51 +163,43 @@ export const byEntity = query({
   },
 
   handler: async (ctx, args) => {
-    await requireIdentity(ctx)
+    await requireIdentity(ctx);
 
     const logs = await ctx.db
       .query("logs")
       .withIndex("by_entity", (q) =>
-        q
-          .eq("entityType", args.entityType)
-          .eq("entityId", args.entityId),
+        q.eq("entityType", args.entityType).eq("entityId", args.entityId),
       )
       .order("desc")
-      .collect()
+      .collect();
 
     return await Promise.all(
       logs.map(async (log) => {
         const actor = await ctx.db
           .query("users")
           .withIndex("by_clerk_user_id", (q) =>
-            q.eq(
-              "clerkUserId",
-              log.actorUserId,
-            ),
+            q.eq("clerkUserId", log.actorUserId),
           )
-          .unique()
+          .unique();
 
         const targetUser = log.targetUserId
           ? await ctx.db
               .query("users")
               .withIndex("by_clerk_user_id", (q) =>
-                q.eq(
-                  "clerkUserId",
-                  log.targetUserId!,
-                ),
+                q.eq("clerkUserId", log.targetUserId!),
               )
               .unique()
-          : null
+          : null;
 
         return {
           ...log,
           actor,
           targetUser,
-        }
+        };
       }),
-    )
+    );
   },
-})
+});
 
 export const byAction = query({
   args: {
@@ -230,17 +208,15 @@ export const byAction = query({
   },
 
   handler: async (ctx, args) => {
-    await requireIdentity(ctx)
+    await requireIdentity(ctx);
 
     return await ctx.db
       .query("logs")
-      .withIndex("by_action", (q) =>
-        q.eq("action", args.action),
-      )
+      .withIndex("by_action", (q) => q.eq("action", args.action))
       .order("desc")
-      .paginate(args.paginationOpts)
+      .paginate(args.paginationOpts);
   },
-})
+});
 
 export const byActor = query({
   args: {
@@ -249,14 +225,12 @@ export const byActor = query({
   },
 
   handler: async (ctx, args) => {
-    await requireIdentity(ctx)
+    await requireIdentity(ctx);
 
     return await ctx.db
       .query("logs")
-      .withIndex("by_actor", (q) =>
-        q.eq("actorUserId", args.actorUserId),
-      )
+      .withIndex("by_actor", (q) => q.eq("actorUserId", args.actorUserId))
       .order("desc")
-      .paginate(args.paginationOpts)
+      .paginate(args.paginationOpts);
   },
-})
+});

@@ -1,36 +1,30 @@
-import type { Id } from "@/convex/_generated/dataModel"
+import type { Id } from "@/convex/_generated/dataModel";
 
-export type TransactionStatus =
-  | "pending"
-  | "confirmed"
-  | "rejected"
+export type TransactionStatus = "pending" | "confirmed" | "rejected";
 
-export type TransactionVote =
-  | "yes"
-  | "no"
-  | null
+export type TransactionVote = "yes" | "no" | null;
 
 export type TransactionTableRow = {
-  _id: Id<"transactions">
+  _id: Id<"transactions">;
 
-  userId: string
-  createdBy: string
+  userId: string;
+  createdBy: string;
 
-  amountCents: number
-  paymentMethod: "cash"
+  amountCents: number;
+  paymentMethod: "cash";
 
-  status: TransactionStatus
+  status: TransactionStatus;
 
-  createdAt: number
-  resolvedAt?: number
+  createdAt: number;
+  resolvedAt?: number;
 
-  requiredApprovals: number
+  requiredApprovals: number;
 
-  userDisplayName: string
-  creatorDisplayName: string
+  userDisplayName: string;
+  creatorDisplayName: string;
 
-  yesVotes: number
-  noVotes: number
+  yesVotes: number;
+  noVotes: number;
 
-  currentUserVote: TransactionVote
-}
+  currentUserVote: TransactionVote;
+};

@@ -1,4 +1,4 @@
-import { columnHelper } from "./helper"
+import { columnHelper } from "./helper";
 
 export const createdColumn = columnHelper.accessor(
   (row): unknown => row.createdAt,
@@ -14,4 +14,4 @@ export const createdColumn = columnHelper.accessor(
 
     sortFn: "alphanumeric",
   },
-)
+);

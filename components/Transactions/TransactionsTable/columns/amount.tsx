@@ -1,4 +1,4 @@
-import { columnHelper } from "./helper"
+import { columnHelper } from "./helper";
 
 export const amountColumn = columnHelper.accessor(
   (row): unknown => row.amountCents,
@@ -14,4 +14,4 @@ export const amountColumn = columnHelper.accessor(
 
     sortFn: "alphanumeric",
   },
-)
+);

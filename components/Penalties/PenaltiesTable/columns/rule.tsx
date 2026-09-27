@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { ArrowUpDown } from "lucide-react"
+import { ArrowUpDown } from "lucide-react";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 
-import { columnHelper } from "./helper"
+import { columnHelper } from "./helper";
 
 export const ruleColumn = columnHelper.accessor(
   (row) => row.rule?.description ?? "Unknown rule",
@@ -13,11 +13,7 @@ export const ruleColumn = columnHelper.accessor(
     header: ({ column }) => (
       <Button
         variant="ghost"
-        onClick={() =>
-          column.toggleSorting(
-            column.getIsSorted() === "asc",
-          )
-        }
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
         Rule
         <ArrowUpDown className="ml-2 size-4" />
@@ -30,4 +26,4 @@ export const ruleColumn = columnHelper.accessor(
     ),
     sortFn: "text",
   },
-)
+);
