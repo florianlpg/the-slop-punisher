@@ -2,9 +2,7 @@
 
 import { useState } from "react"
 
-import { NavDocuments } from "@/components/Dashboard/nav-documents"
-import { NavMain } from "@/components/Dashboard/nav-main"
-import { NavSecondary } from "@/components/Dashboard/nav-secondary"
+import { NavMain } from "@/components/Dashboard/NavMain"
 import { NavUser } from "@/components/Dashboard/NavUser"
 
 import {
@@ -17,7 +15,14 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-import { LayoutDashboardIcon, ListIcon, ChartBarIcon, FolderIcon, UsersIcon, CameraIcon, FileTextIcon, Settings2Icon, CircleHelpIcon, SearchIcon, DatabaseIcon, FileChartColumnIcon, FileIcon, CommandIcon } from "lucide-react"
+import {
+  LayoutDashboardIcon,
+  SkullIcon,
+  LogsIcon,
+  BanknoteIcon,
+  SettingsIcon,
+  VoteIcon,
+} from "lucide-react"
 
 import { AccountDialog } from "@/components/Dashboard/AccountDialog";
 
@@ -27,160 +32,45 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: (
-        <LayoutDashboardIcon
-        />
+        <LayoutDashboardIcon/>
       ),
     },
     {
-      title: "Lifecycle",
-      url: "#",
+      title: "Approbations",
+      url: "/approbations",
       icon: (
-        <ListIcon
-        />
+        <VoteIcon/>
       ),
     },
     {
-      title: "Analytics",
-      url: "#",
+      title: "Transactions",
+      url: "/transactions",
       icon: (
-        <ChartBarIcon
-        />
+        <BanknoteIcon/>
       ),
     },
     {
-      title: "Projects",
-      url: "#",
+      title: "Rules",
+      url: "/rules",
       icon: (
-        <FolderIcon
-        />
+        <SettingsIcon/>
       ),
     },
     {
-      title: "Team",
-      url: "#",
+      title: "Logs",
+      url: "/logs",
       icon: (
-        <UsersIcon
-        />
-      ),
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: (
-        <CameraIcon
-        />
-      ),
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: (
-        <FileTextIcon
-        />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: (
-        <FileTextIcon
-        />
-      ),
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Settings",
-      url: "#",
-      icon: (
-        <Settings2Icon
-        />
-      ),
-    },
-    {
-      title: "Get Help",
-      url: "#",
-      icon: (
-        <CircleHelpIcon
-        />
-      ),
-    },
-    {
-      title: "Search",
-      url: "#",
-      icon: (
-        <SearchIcon
-        />
-      ),
-    },
-  ],
-  documents: [
-    {
-      name: "Data Library",
-      url: "#",
-      icon: (
-        <DatabaseIcon
-        />
-      ),
-    },
-    {
-      name: "Reports",
-      url: "#",
-      icon: (
-        <FileChartColumnIcon
-        />
-      ),
-    },
-    {
-      name: "Word Assistant",
-      url: "#",
-      icon: (
-        <FileIcon
-        />
+        <LogsIcon/>
       ),
     },
   ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user, isLoaded, isSignedIn } = useUser();
+  const { user, isLoaded } = useUser();
   const [isAccountDialogOpen, setIsAccountDialogOpen] = useState<boolean>(false);
-
 
   return (
     <>
@@ -194,16 +84,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className="data-[slot=sidebar-menu-button]:p-1.5!"
                 render={<a href="#" />}
               >
-                <CommandIcon className="size-5!" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <SkullIcon className="size-5!" />
+                <span className="text-base font-semibold">Slop Punisher</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
           <NavMain items={data.navMain} />
-          <NavDocuments items={data.documents} />
-          <NavSecondary items={data.navSecondary} className="mt-auto" />
         </SidebarContent>
         <SidebarFooter>
           <NavUser
