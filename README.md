@@ -118,18 +118,18 @@ Each member has a dedicated profile containing:
 
 ## 🏗️ Tech Stack
 
-| Technology | Purpose |
-| --- | --- |
-| [Next.js](https://nextjs.org/) | React framework and application routing |
-| [React](https://react.dev/) | User interface |
-| [TypeScript](https://www.typescriptlang.org/) | Type-safe application code |
-| [Convex](https://convex.dev/) | Database, queries and mutations |
-| [Clerk](https://clerk.com/) | Authentication and user sessions |
-| [Tailwind CSS](https://tailwindcss.com/) | Styling |
-| [shadcn/ui](https://ui.shadcn.com/) | UI components |
-| [Recharts](https://recharts.org/) | Data visualization |
-| [Oxlint](https://oxc.rs/docs/guide/usage/linter) | JavaScript / TypeScript linting |
-| [Oxfmt](https://oxc.rs/docs/guide/usage/formatter) | Code formatting |
+| Technology                                         | Purpose                                 |
+| -------------------------------------------------- | --------------------------------------- |
+| [Next.js](https://nextjs.org/)                     | React framework and application routing |
+| [React](https://react.dev/)                        | User interface                          |
+| [TypeScript](https://www.typescriptlang.org/)      | Type-safe application code              |
+| [Convex](https://convex.dev/)                      | Database, queries and mutations         |
+| [Clerk](https://clerk.com/)                        | Authentication and user sessions        |
+| [Tailwind CSS](https://tailwindcss.com/)           | Styling                                 |
+| [shadcn/ui](https://ui.shadcn.com/)                | UI components                           |
+| [Recharts](https://recharts.org/)                  | Data visualization                      |
+| [Oxlint](https://oxc.rs/docs/guide/usage/linter)   | JavaScript / TypeScript linting         |
+| [Oxfmt](https://oxc.rs/docs/guide/usage/formatter) | Code formatting                         |
 
 ---
 

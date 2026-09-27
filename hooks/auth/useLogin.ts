@@ -1,6 +1,6 @@
 "use client";
 
-import { useClerk, useSignIn } from "@clerk/nextjs";
+import { useAuth, useClerk, useSignIn } from "@clerk/nextjs";
 import { useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { useRouter } from "next/navigation";
@@ -62,6 +62,8 @@ export function useLogin(): UseLoginReturn {
 
   const { setActive } = useClerk();
 
+  const { isLoaded: isAuthLoaded, isSignedIn, signOut } = useAuth();
+
   const ensureUser = useMutation(api.users.ensureUser);
 
   const [isLoading, setIsLoading] = useState(false);
@@ -71,8 +73,8 @@ export function useLogin(): UseLoginReturn {
     username,
     password,
   }: LoginCredentials): Promise<void> => {
-    if (!isSignInLoaded) {
-      console.warn("Clerk SignIn is not loaded yet.");
+    if (!isSignInLoaded || !isAuthLoaded) {
+      console.warn("Clerk is not loaded yet.");
       return;
     }
 
@@ -80,6 +82,16 @@ export function useLogin(): UseLoginReturn {
     setError(null);
 
     try {
+      if (isSignedIn) {
+        console.log(
+          "Existing Clerk session found. Signing it out before login...",
+        );
+
+        await signOut();
+
+        console.log("Existing Clerk session revoked.");
+      }
+
       const result = await signIn.create({
         identifier: username,
         password,
