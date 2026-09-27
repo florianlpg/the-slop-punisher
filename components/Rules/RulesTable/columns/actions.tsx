@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { useMutation } from "convex/react"
 import { Trash2 } from "lucide-react"
 
@@ -22,12 +23,38 @@ import { columnHelper } from "./helper"
 
 function ActionsCell({ rule }: { rule: RuleTableRow }) {
   const archiveRule = useMutation(api.rules.archive)
+  const [isArchiving, setIsArchiving] = useState(false)
+  const [open, setOpen] = useState(false)
+
+  const handleArchive = async () => {
+    if (isArchiving) {
+      return
+    }
+
+    setIsArchiving(true)
+
+    try {
+      await archiveRule({
+        ruleId: rule._id,
+      })
+
+      setOpen(false)
+    } catch (error) {
+      console.error("Failed to archive rule:", error)
+    } finally {
+      setIsArchiving(false)
+    }
+  }
 
   return (
-    <AlertDialog>
+    <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger
         render={
-          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" />
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+          />
         }
       >
         <span className="sr-only">Remove rule</span>
@@ -36,16 +63,26 @@ function ActionsCell({ rule }: { rule: RuleTableRow }) {
 
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Remove this rule?</AlertDialogTitle>
+          <AlertDialogTitle>
+            Remove this rule?
+          </AlertDialogTitle>
+
           <AlertDialogDescription>
-            &ldquo;{rule.description}&rdquo; will be archived. Past infractions tied to it are
-            kept for history.
+            &ldquo;{rule.description}&rdquo; will be archived.
+            Past infractions tied to it are kept for history.
           </AlertDialogDescription>
         </AlertDialogHeader>
+
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => archiveRule({ ruleId: rule._id })}>
-            Remove
+          <AlertDialogCancel disabled={isArchiving}>
+            Cancel
+          </AlertDialogCancel>
+
+          <AlertDialogAction
+            disabled={isArchiving}
+            onClick={handleArchive}
+          >
+            {isArchiving ? "Removing..." : "Remove"}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -55,5 +92,7 @@ function ActionsCell({ rule }: { rule: RuleTableRow }) {
 
 export const actionsColumn = columnHelper.display({
   id: "actions",
-  cell: ({ row }) => <ActionsCell rule={row.original} />,
+  cell: ({ row }) => (
+    <ActionsCell rule={row.original} />
+  ),
 })

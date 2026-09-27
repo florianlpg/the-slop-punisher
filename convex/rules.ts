@@ -16,6 +16,21 @@ async function requireIdentity(ctx: QueryCtx | MutationCtx) {
   return identity
 }
 
+export const active = query({
+  args: {},
+  handler: async (ctx) => {
+    await requireIdentity(ctx)
+
+    return await ctx.db
+      .query("rules")
+      .withIndex("by_status", (q) =>
+        q.eq("status", "active")
+      )
+      .order("desc")
+      .collect()
+  },
+})
+
 export const list = query({
   args: {},
   handler: async (ctx) => {
@@ -97,7 +112,7 @@ export const archive = mutation({
   },
 
   handler: async (ctx, args) => {
-    await requireIdentity(ctx)
+    const identity = await requireIdentity(ctx)
 
     const rule = await ctx.db.get("rules", args.ruleId)
 

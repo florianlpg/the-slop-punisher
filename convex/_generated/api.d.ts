@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as infractions from "../infractions.js";
 import type * as rules from "../rules.js";
 import type * as users from "../users.js";
 
@@ -18,6 +19,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  infractions: typeof infractions;
   rules: typeof rules;
   users: typeof users;
 }>;

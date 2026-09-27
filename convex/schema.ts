@@ -4,8 +4,36 @@ import { v } from "convex/values"
 export default defineSchema({
   users: defineTable({
     clerkUserId: v.string(),
+    username: v.optional(v.string()),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    name: v.optional(v.string()),
     createdAt: v.number(),
+    updatedAt: v.number(),
   }).index("by_clerk_user_id", ["clerkUserId"]),
+
+  infractionVotes: defineTable({
+    infractionId: v.id("infractions"),
+    voterUserId: v.string(),
+    vote: v.union(
+      v.literal("yes"),
+      v.literal("no")
+    ),
+    votedAt: v.number(),
+  }),
+
+  notifications: defineTable({
+    type: v.union(
+      v.literal("infraction_approval"),
+      v.literal("system")
+    ),
+    infractionId: v.optional(v.id("infractions")),
+    recipientUserId: v.string(),
+    message: v.string(),
+    read: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_recipient_and_read", ["recipientUserId", "read"]),
 
   rules: defineTable({
     description: v.string(),
@@ -61,14 +89,4 @@ export default defineSchema({
     .index("by_rule", ["ruleId"])
     .index("by_accused", ["accusedUserId"])
     .index("by_status", ["status"]),
-
-  infractionVotes: defineTable({
-    infractionId: v.id("infractions"),
-    voterUserId: v.string(),
-    vote: v.union(v.literal("yes"), v.literal("no")),
-    votedAt: v.number(),
-  }).index("by_infraction_and_voter", [
-    "infractionId",
-    "voterUserId",
-  ]),
 })

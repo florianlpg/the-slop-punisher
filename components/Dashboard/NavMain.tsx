@@ -8,7 +8,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-
+import { QuickCreateDialog } from "@/components/Dashboard/QuickCreateDialog"
 import { CirclePlusIcon } from "lucide-react"
 
 import Link from "next/link"
@@ -24,7 +24,6 @@ export function NavMain({
   }) {
   const pathname = usePathname()
 
-  console.log(pathname)
 
   return (
     <SidebarGroup>
@@ -35,9 +34,7 @@ export function NavMain({
               tooltip="Quick Create"
               className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
             >
-              <CirclePlusIcon
-              />
-              <span>Quick Create</span>
+              <QuickCreateDialog />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
