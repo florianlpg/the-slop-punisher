@@ -8,6 +8,8 @@ import {
   AvatarImage,
 } from "@/components/ui/avatar"
 
+import { Skeleton } from "@/components/ui/skeleton"
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,22 +32,32 @@ import { EllipsisVerticalIcon, CircleUserRoundIcon, CreditCardIcon, BellIcon, Lo
 import { useLogout }  from "@/hooks/auth/useLogout";
 
 interface NavUserProps {
-  user: {
-    name: string
-    avatar: string
-  },
-  isUserAccountClicked: boolean,
+  user: { name: string; avatar: string } | null
+  isUserAccountClicked: boolean
   setIsUserAccountClicked: Dispatch<SetStateAction<boolean>>
 }
 
 export const NavUser: FC<NavUserProps> = ({
   user,
   isUserAccountClicked,
-  setIsUserAccountClicked
+  setIsUserAccountClicked,
 }) => {
   const { isMobile } = useSidebar()
   const { logout } = useLogout();
 
+
+  if (!user) {
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <div className="flex items-center gap-2 p-1.5">
+            <Skeleton className="size-8 rounded-full" />
+            <Skeleton className="h-4 flex-1" />
+          </div>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    )
+  }
 
   return (
       <SidebarMenu>
@@ -57,14 +69,16 @@ export const NavUser: FC<NavUserProps> = ({
                 <SidebarMenuButton size="lg" className="aria-expanded:bg-muted" />
               }
             >
-              <Avatar className="size-8 rounded-lg grayscale">
+              <Avatar className="size-8">
                 <AvatarImage src={user.avatar} alt={user.name} />
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
-              </div>
-              <EllipsisVerticalIcon className="ml-auto size-4" />
+            <div className="grid flex-1 text-left text-sm leading-tight">
+              <span className="truncate font-medium">{user.name}</span>
+            </div>
+
+            <EllipsisVerticalIcon className="ml-auto size-4" />
+
             </DropdownMenuTrigger>
             <DropdownMenuContent
               className="min-w-56"
@@ -87,11 +101,11 @@ export const NavUser: FC<NavUserProps> = ({
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuGroup>
-              <DropdownMenuItem
-                className={"cursor-pointer"}
-                onClick={() => setIsUserAccountClicked(!isUserAccountClicked)}
-              >
-                <CircleUserRoundIcon />
+                <DropdownMenuItem
+                  className={"cursor-pointer"}
+                  onClick={() => setIsUserAccountClicked(!isUserAccountClicked)}
+                >
+                  <CircleUserRoundIcon />
                   Account
                 </DropdownMenuItem>
                 <DropdownMenuItem>

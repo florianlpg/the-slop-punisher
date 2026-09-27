@@ -5,7 +5,7 @@ import { useState } from "react"
 import { NavDocuments } from "@/components/Dashboard/nav-documents"
 import { NavMain } from "@/components/Dashboard/nav-main"
 import { NavSecondary } from "@/components/Dashboard/nav-secondary"
-import { NavUser } from "@/components/Dashboard/nav-user"
+import { NavUser } from "@/components/Dashboard/NavUser"
 
 import {
   Sidebar,
@@ -24,10 +24,6 @@ import { AccountDialog } from "@/components/Dashboard/AccountDialog";
 import { useUser } from "@clerk/nextjs";
 
 const data = {
-  user: {
-    name: "shadcn",
-    avatar: "/avatars/shadcn.jpg",
-  },
   navMain: [
     {
       title: "Dashboard",
@@ -185,7 +181,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user, isLoaded, isSignedIn } = useUser();
   const [isAccountDialogOpen, setIsAccountDialogOpen] = useState<boolean>(false);
 
-  if (!isLoaded || !isSignedIn) return null;
 
   return (
     <>
@@ -212,10 +207,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarContent>
         <SidebarFooter>
           <NavUser
-            user={{
-              name: user.firstName + " " + user.lastName,
-              avatar: user.imageUrl ,
-            }}
+            user={
+              isLoaded && user
+                ? { name: user.fullName ?? user.username ?? "User", avatar: user.imageUrl }
+                : null
+            }
             isUserAccountClicked={isAccountDialogOpen}
             setIsUserAccountClicked={setIsAccountDialogOpen}
           />
