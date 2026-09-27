@@ -8,8 +8,11 @@
  * @module
  */
 
+import type * as dashboard from "../dashboard.js";
 import type * as infractions from "../infractions.js";
+import type * as logs from "../logs.js";
 import type * as rules from "../rules.js";
+import type * as transactions from "../transactions.js";
 import type * as users from "../users.js";
 
 import type {
@@ -19,8 +22,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  dashboard: typeof dashboard;
   infractions: typeof infractions;
+  logs: typeof logs;
   rules: typeof rules;
+  transactions: typeof transactions;
   users: typeof users;
 }>;
 

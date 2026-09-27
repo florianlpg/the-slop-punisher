@@ -1,9 +1,7 @@
 import { AppSidebar } from "@/components/Dashboard/AppSidebar"
-import { DashboardContent } from "@/components/Dashboard/DashboardContent"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+
+import { LogsTable } from "@/components/Logs/LogsTable/LogsTable"
 
 export default function Page() {
   return (
@@ -20,7 +18,11 @@ export default function Page() {
       <AppSidebar variant="inset" />
 
       <SidebarInset>
-        <DashboardContent />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <LogsTable />
+          </div>
+        </div>
       </SidebarInset>
     </SidebarProvider>
   )

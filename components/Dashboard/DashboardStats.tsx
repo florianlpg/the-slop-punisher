@@ -1,5 +1,12 @@
 "use client"
 
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
+  Clock3Icon,
+  UsersIcon,
+} from "lucide-react"
+
 import { Badge } from "@/components/ui/badge"
 import {
   Card,
@@ -8,12 +15,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Clock3Icon,
-  TrendingDownIcon,
-  TrendingUpIcon,
-  UsersIcon,
-} from "lucide-react"
 
 type DashboardStats = {
   totalOutstandingCents: number
@@ -26,7 +27,9 @@ type SectionCardsProps = {
   stats: DashboardStats
 }
 
-function formatCurrency(cents: number) {
+function formatCurrency(
+  cents: number,
+) {
   return new Intl.NumberFormat("fr-FR", {
     style: "currency",
     currency: "EUR",
@@ -37,10 +40,12 @@ export function SectionCards({
   stats,
 }: SectionCardsProps) {
   return (
-    <div className="grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-linear-to-t *:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 dark:*:data-[slot=card]:bg-card">
+    <div className="grid grid-cols-1 gap-4 px-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4 lg:px-6">
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total owed</CardDescription>
+          <CardDescription>
+            Total owed
+          </CardDescription>
 
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {formatCurrency(
@@ -50,7 +55,7 @@ export function SectionCards({
 
           <CardAction>
             <Badge variant="outline">
-              <TrendingDownIcon />
+              <ArrowDownIcon />
               Outstanding
             </Badge>
           </CardAction>
@@ -59,7 +64,9 @@ export function SectionCards({
 
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Total collected</CardDescription>
+          <CardDescription>
+            Total collected
+          </CardDescription>
 
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {formatCurrency(
@@ -69,8 +76,8 @@ export function SectionCards({
 
           <CardAction>
             <Badge variant="outline">
-              <TrendingUpIcon />
-              Collected
+              <ArrowUpIcon />
+              Cash
             </Badge>
           </CardAction>
         </CardHeader>
@@ -78,7 +85,9 @@ export function SectionCards({
 
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Pending approval</CardDescription>
+          <CardDescription>
+            Pending approval
+          </CardDescription>
 
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {stats.pendingApprovals}
@@ -95,7 +104,9 @@ export function SectionCards({
 
       <Card className="@container/card">
         <CardHeader>
-          <CardDescription>Members</CardDescription>
+          <CardDescription>
+            Members
+          </CardDescription>
 
           <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
             {stats.memberCount}

@@ -92,10 +92,7 @@ function ActionsCell({ rule }: { rule: RuleTableRow }) {
 
 export const actionsColumn = columnHelper.display({
   id: "actions",
-  header: "",
   cell: ({ row }) => (
-    <div className="flex justify-end">
-      <ActionsCell infraction={row.original} />
-    </div>
+    <ActionsCell rule={row.original} />
   ),
 })

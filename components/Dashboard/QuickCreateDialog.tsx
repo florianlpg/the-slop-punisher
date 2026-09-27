@@ -5,7 +5,10 @@ import { useMutation, useQuery } from "convex/react"
 import { api } from "@/convex/_generated/api"
 import type { Id } from "@/convex/_generated/dataModel"
 
-import { Button } from "@/components/ui/button"
+import {
+  Button,
+  buttonVariants,
+} from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -28,12 +31,15 @@ import { CirclePlusIcon } from "lucide-react"
 
 export function QuickCreateDialog() {
   const [open, setOpen] = useState(false)
-  const [userId, setUserId] = useState<string | undefined>()
+  const [userId, setUserId] = useState<
+    string | undefined
+  >()
   const [ruleId, setRuleId] = useState<
     Id<"rules"> | undefined
   >()
   const [quantity, setQuantity] = useState("1")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] =
+    useState(false)
 
   const users = useQuery(api.users.list)
   const rules = useQuery(api.rules.active)
@@ -117,11 +123,13 @@ export function QuickCreateDialog() {
       open={open}
       onOpenChange={setOpen}
     >
-      <DialogTrigger asChild>
-        <Button className="w-full min-w-8">
-          <CirclePlusIcon />
-          <span>Quick Create</span>
-        </Button>
+      <DialogTrigger
+        className={buttonVariants({
+          className: "w-full min-w-8",
+        })}
+      >
+        <CirclePlusIcon />
+        <span>Quick Create</span>
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-lg">

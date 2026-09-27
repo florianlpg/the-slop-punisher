@@ -54,60 +54,33 @@ function getUserDisplayName(
 }
 
 /**
- * Create a new infraction.
+ * Create a cash transaction.
  *
- * Infractions requiring more than one approval are
- * created as pending. Otherwise they are immediately
- * confirmed.
+ * Transactions are independent from infractions.
+ * The transaction simply records cash received from a user.
  */
 export const create = mutation({
   args: {
-    ruleId:
-      v.id("rules"),
-
-    accusedUserId:
+    userId:
       v.string(),
 
-    quantity:
+    amountCents:
       v.number(),
-
-    note:
-      v.optional(
-        v.string(),
-      ),
   },
 
   handler: async (ctx, args) => {
     const identity =
       await requireIdentity(ctx)
 
-    if (args.quantity <= 0) {
-      throw new Error(
-        "Quantity must be greater than zero",
-      )
-    }
-
-    const rule =
-      await ctx.db.get(
-        "rules",
-        args.ruleId,
-      )
-
-    if (!rule) {
-      throw new Error(
-        "Rule not found",
-      )
-    }
-
     if (
-      rule.status !== "active"
+      args.amountCents <= 0
     ) {
       throw new Error(
-        "This rule is not active",
+        "Transaction amount must be greater than zero",
       )
     }
 
-    const accusedUser =
+    const user =
       await ctx.db
         .query("users")
         .withIndex(
@@ -115,63 +88,59 @@ export const create = mutation({
           (q) =>
             q.eq(
               "clerkUserId",
-              args.accusedUserId,
+              args.userId,
             ),
         )
         .unique()
 
-    if (!accusedUser) {
+    if (!user) {
       throw new Error(
-        "Accused user not found",
+        "User not found",
       )
     }
 
-    const amountCents =
-      rule.fineAmountCents *
-      args.quantity
+    const totalMembers =
+      (
+        await ctx.db
+          .query("users")
+          .collect()
+      ).length
 
-    const status =
-      rule.requiredApprovalsToConfirm <=
-      1
-        ? "confirmed"
-        : "pending"
+    if (
+      totalMembers <= 0
+    ) {
+      throw new Error(
+        "There are no users available for approval",
+      )
+    }
 
     const now =
       Date.now()
 
-    const infractionId =
+    const transactionId =
       await ctx.db.insert(
-        "infractions",
+        "transactions",
         {
-          ruleId:
-            args.ruleId,
+          userId:
+            args.userId,
 
-          accusedUserId:
-            args.accusedUserId,
+          amountCents:
+            args.amountCents,
 
-          reportedBy:
+          paymentMethod:
+            "cash",
+
+          status:
+            "pending",
+
+          createdBy:
             identity.subject,
-
-          quantity:
-            args.quantity,
-
-          amountCents,
-
-          note:
-            args.note,
-
-          status,
 
           createdAt:
             now,
 
-          ...(status ===
-          "confirmed"
-            ? {
-                resolvedAt:
-                  now,
-              }
-            : {}),
+          requiredApprovals:
+            totalMembers,
         },
       )
 
@@ -180,59 +149,142 @@ export const create = mutation({
         identity.subject,
 
       action:
-        "infraction_created",
+        "transaction_created",
 
       entityType:
-        "infraction",
+        "transaction",
 
       entityId:
-        infractionId,
+        transactionId,
 
       targetUserId:
-        args.accusedUserId,
+        args.userId,
 
       metadata: {
-        amountCents,
-        quantity:
-          args.quantity,
+        amountCents:
+          args.amountCents,
+
         newStatus:
-          status,
+          "pending",
       },
     })
 
-    if (
-      status ===
-      "confirmed"
-    ) {
-      await createLog(ctx, {
-        actorUserId:
-          identity.subject,
-
-        action:
-          "infraction_confirmed",
-
-        entityType:
-          "infraction",
-
-        entityId:
-          infractionId,
-
-        targetUserId:
-          args.accusedUserId,
-
-        metadata: {
-          newStatus:
-            "confirmed",
-        },
-      })
-    }
-
-    return infractionId
+    return transactionId
   },
 })
 
 /**
- * Return all pending infractions that require approval.
+ * Return all transactions.
+ */
+export const list = query({
+  args: {},
+
+  handler: async (ctx) => {
+    const identity =
+      await requireIdentity(ctx)
+
+    const transactions =
+      await ctx.db
+        .query("transactions")
+        .order("desc")
+        .collect()
+
+    return await Promise.all(
+      transactions.map(
+        async (
+          transaction,
+        ) => {
+          const user =
+            await ctx.db
+              .query("users")
+              .withIndex(
+                "by_clerk_user_id",
+                (q) =>
+                  q.eq(
+                    "clerkUserId",
+                    transaction.userId,
+                  ),
+              )
+              .unique()
+
+          const creator =
+            await ctx.db
+              .query("users")
+              .withIndex(
+                "by_clerk_user_id",
+                (q) =>
+                  q.eq(
+                    "clerkUserId",
+                    transaction.createdBy,
+                  ),
+              )
+              .unique()
+
+          const votes =
+            await ctx.db
+              .query(
+                "transactionVotes",
+              )
+              .withIndex(
+                "by_transaction_and_voter",
+                (q) =>
+                  q.eq(
+                    "transactionId",
+                    transaction._id,
+                  ),
+              )
+              .collect()
+
+          const yesVotes =
+            votes.filter(
+              (vote) =>
+                vote.vote ===
+                "yes",
+            ).length
+
+          const noVotes =
+            votes.filter(
+              (vote) =>
+                vote.vote ===
+                "no",
+            ).length
+
+          return {
+            ...transaction,
+
+            user,
+
+            creator,
+
+            userDisplayName:
+              getUserDisplayName(
+                user,
+              ),
+
+            creatorDisplayName:
+              getUserDisplayName(
+                creator,
+              ),
+
+            yesVotes,
+
+            noVotes,
+
+            currentUserVote:
+              votes.find(
+                (vote) =>
+                  vote.voterUserId ===
+                  identity.subject,
+              )?.vote ?? null,
+          }
+        },
+      ),
+    )
+  },
+})
+
+/**
+ * Return pending transactions requiring approval.
  */
 export const approvals = query({
   args: {},
@@ -241,9 +293,9 @@ export const approvals = query({
     const identity =
       await requireIdentity(ctx)
 
-    const infractions =
+    const transactions =
       await ctx.db
-        .query("infractions")
+        .query("transactions")
         .withIndex(
           "by_status",
           (q) =>
@@ -256,17 +308,11 @@ export const approvals = query({
         .collect()
 
     return await Promise.all(
-      infractions.map(
+      transactions.map(
         async (
-          infraction,
+          transaction,
         ) => {
-          const rule =
-            await ctx.db.get(
-              "rules",
-              infraction.ruleId,
-            )
-
-          const accusedUser =
+          const user =
             await ctx.db
               .query("users")
               .withIndex(
@@ -274,12 +320,12 @@ export const approvals = query({
                 (q) =>
                   q.eq(
                     "clerkUserId",
-                    infraction.accusedUserId,
+                    transaction.userId,
                   ),
               )
               .unique()
 
-          const reporterUser =
+          const creator =
             await ctx.db
               .query("users")
               .withIndex(
@@ -287,7 +333,7 @@ export const approvals = query({
                 (q) =>
                   q.eq(
                     "clerkUserId",
-                    infraction.reportedBy,
+                    transaction.createdBy,
                   ),
               )
               .unique()
@@ -295,14 +341,14 @@ export const approvals = query({
           const votes =
             await ctx.db
               .query(
-                "infractionVotes",
+                "transactionVotes",
               )
               .withIndex(
-                "by_infraction_and_voter",
+                "by_transaction_and_voter",
                 (q) =>
                   q.eq(
-                    "infractionId",
-                    infraction._id,
+                    "transactionId",
+                    transaction._id,
                   ),
               )
               .collect()
@@ -329,21 +375,25 @@ export const approvals = query({
             )?.vote ?? null
 
           return {
-            ...infraction,
+            ...transaction,
 
-            rule,
+            user,
 
-            accusedUser,
+            creator,
 
-            reporterUser,
+            userDisplayName:
+              getUserDisplayName(
+                user,
+              ),
+
+            creatorDisplayName:
+              getUserDisplayName(
+                creator,
+              ),
 
             yesVotes,
 
             noVotes,
-
-            requiredApprovals:
-              rule?.requiredApprovalsToConfirm ??
-              1,
 
             currentUserVote,
           }
@@ -354,12 +404,15 @@ export const approvals = query({
 })
 
 /**
- * Vote on a pending infraction.
+ * Vote on a transaction.
+ *
+ * All users must approve a transaction for it to become confirmed.
+ * A single rejection rejects the transaction.
  */
 export const vote = mutation({
   args: {
-    infractionId:
-      v.id("infractions"),
+    transactionId:
+      v.id("transactions"),
 
     vote: v.union(
       v.literal("yes"),
@@ -371,39 +424,39 @@ export const vote = mutation({
     const identity =
       await requireIdentity(ctx)
 
-    const infraction =
+    const transaction =
       await ctx.db.get(
-        "infractions",
-        args.infractionId,
+        "transactions",
+        args.transactionId,
       )
 
-    if (!infraction) {
+    if (!transaction) {
       throw new Error(
-        "Infraction not found",
+        "Transaction not found",
       )
     }
 
     if (
-      infraction.status !==
+      transaction.status !==
       "pending"
     ) {
       throw new Error(
-        "This infraction is no longer pending",
+        "This transaction is no longer pending",
       )
     }
 
     const existingVote =
       await ctx.db
         .query(
-          "infractionVotes",
+          "transactionVotes",
         )
         .withIndex(
-          "by_infraction_and_voter",
+          "by_transaction_and_voter",
           (q) =>
             q
               .eq(
-                "infractionId",
-                args.infractionId,
+                "transactionId",
+                args.transactionId,
               )
               .eq(
                 "voterUserId",
@@ -414,7 +467,7 @@ export const vote = mutation({
 
     if (existingVote) {
       await ctx.db.patch(
-        "infractionVotes",
+        "transactionVotes",
         existingVote._id,
         {
           vote:
@@ -426,10 +479,10 @@ export const vote = mutation({
       )
     } else {
       await ctx.db.insert(
-        "infractionVotes",
+        "transactionVotes",
         {
-          infractionId:
-            args.infractionId,
+          transactionId:
+            args.transactionId,
 
           voterUserId:
             identity.subject,
@@ -448,16 +501,16 @@ export const vote = mutation({
         identity.subject,
 
       action:
-        "infraction_vote",
+        "transaction_vote",
 
       entityType:
-        "infraction",
+        "transaction",
 
       entityId:
-        args.infractionId,
+        args.transactionId,
 
       targetUserId:
-        infraction.accusedUserId,
+        transaction.userId,
 
       metadata: {
         vote:
@@ -468,14 +521,14 @@ export const vote = mutation({
     const votes =
       await ctx.db
         .query(
-          "infractionVotes",
+          "transactionVotes",
         )
         .withIndex(
-          "by_infraction_and_voter",
+          "by_transaction_and_voter",
           (q) =>
             q.eq(
-              "infractionId",
-              args.infractionId,
+              "transactionId",
+              args.transactionId,
             ),
         )
         .collect()
@@ -483,37 +536,24 @@ export const vote = mutation({
     const yesVotes =
       votes.filter(
         (vote) =>
-          vote.vote === "yes",
+          vote.vote ===
+          "yes",
       ).length
 
     const noVotes =
       votes.filter(
         (vote) =>
-          vote.vote === "no",
+          vote.vote ===
+          "no",
       ).length
 
-    const rule =
-      await ctx.db.get(
-        "rules",
-        infraction.ruleId,
-      )
-
-    if (!rule) {
-      throw new Error(
-        "Rule not found",
-      )
-    }
-
-    if (
-      yesVotes >=
-      rule.requiredApprovalsToConfirm
-    ) {
+    if (noVotes > 0) {
       await ctx.db.patch(
-        "infractions",
-        infraction._id,
+        "transactions",
+        transaction._id,
         {
           status:
-            "confirmed",
+            "rejected",
 
           resolvedAt:
             Date.now(),
@@ -525,35 +565,35 @@ export const vote = mutation({
           identity.subject,
 
         action:
-          "infraction_confirmed",
+          "transaction_rejected",
 
         entityType:
-          "infraction",
+          "transaction",
 
         entityId:
-          infraction._id,
+          transaction._id,
 
         targetUserId:
-          infraction.accusedUserId,
+          transaction.userId,
 
         metadata: {
           previousStatus:
             "pending",
 
           newStatus:
-            "confirmed",
+            "rejected",
         },
       })
     } else if (
-      noVotes >=
-      rule.requiredApprovalsToConfirm
+      yesVotes >=
+      transaction.requiredApprovals
     ) {
       await ctx.db.patch(
-        "infractions",
-        infraction._id,
+        "transactions",
+        transaction._id,
         {
           status:
-            "rejected",
+            "confirmed",
 
           resolvedAt:
             Date.now(),
@@ -565,23 +605,23 @@ export const vote = mutation({
           identity.subject,
 
         action:
-          "infraction_rejected",
+          "transaction_confirmed",
 
         entityType:
-          "infraction",
+          "transaction",
 
         entityId:
-          infraction._id,
+          transaction._id,
 
         targetUserId:
-          infraction.accusedUserId,
+          transaction.userId,
 
         metadata: {
           previousStatus:
             "pending",
 
           newStatus:
-            "rejected",
+            "confirmed",
         },
       })
     }
@@ -590,67 +630,5 @@ export const vote = mutation({
       yesVotes,
       noVotes,
     }
-  },
-})
-
-export const list = query({
-  args: {},
-
-  handler: async (ctx) => {
-    await requireIdentity(ctx)
-
-    const infractions = await ctx.db
-      .query("infractions")
-      .order("desc")
-      .collect()
-
-    return await Promise.all(
-      infractions.map(async (infraction) => {
-        const rule = await ctx.db.get(
-          "rules",
-          infraction.ruleId,
-        )
-
-        const accusedUser = await ctx.db
-          .query("users")
-          .withIndex(
-            "by_clerk_user_id",
-            (q) =>
-              q.eq(
-                "clerkUserId",
-                infraction.accusedUserId,
-              ),
-          )
-          .unique()
-
-        const reporterUser = await ctx.db
-          .query("users")
-          .withIndex(
-            "by_clerk_user_id",
-            (q) =>
-              q.eq(
-                "clerkUserId",
-                infraction.reportedBy,
-              ),
-          )
-          .unique()
-
-        return {
-          id: infraction._id,
-          ruleId: infraction.ruleId,
-          rule,
-          accusedUser,
-          reporterUser,
-          accusedUserId: infraction.accusedUserId,
-          reportedBy: infraction.reportedBy,
-          quantity: infraction.quantity,
-          amountCents: infraction.amountCents,
-          note: infraction.note,
-          status: infraction.status,
-          createdAt: infraction.createdAt,
-          resolvedAt: infraction.resolvedAt,
-        }
-      }),
-    )
   },
 })

@@ -9,12 +9,15 @@ import {
 } from "@tanstack/react-table"
 
 import { useQuery } from "convex/react"
+
 import { api } from "@/convex/_generated/api"
 
 import { columns } from "./columns"
-import { features } from "./ApprobationsTableFeatures"
+import { features } from "./TransactionsTableFeatures"
 
-import type { ApprobationTableRow } from "@/app/approbations/types"
+import type { TransactionTableRow } from "@/app/transactions/types"
+
+import { AddTransactionDialog } from "@/components/Transactions/AddTransactionDialog"
 
 import {
   Table,
@@ -25,72 +28,31 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-function getUserDisplayName(
-  user:
-    | {
-        firstName?: string
-        lastName?: string
-        name?: string
-        username?: string
-      }
-    | null,
-) {
-  if (!user) {
-    return "Unknown user"
-  }
-
-  const fullName = [
-    user.firstName,
-    user.lastName,
-  ]
-    .filter(Boolean)
-    .join(" ")
-
-  return (
-    fullName ||
-    user.name ||
-    user.username ||
-    "Unknown user"
-  )
-}
-
-export function ApprobationsTable() {
-  const infractions = useQuery(
-    api.infractions.approvals,
+export function TransactionsTable() {
+  const transactions = useQuery(
+    api.transactions.list,
   )
 
-  const data: ApprobationTableRow[] =
-    infractions?.map((infraction) => ({
-      _id: infraction._id,
-      ruleId: infraction.ruleId,
-      accusedUserId: infraction.accusedUserId,
-      reportedBy: infraction.reportedBy,
-      quantity: infraction.quantity,
-      amountCents: infraction.amountCents,
-      note: infraction.note,
-      status: infraction.status,
-      createdAt: infraction.createdAt,
-
-      description:
-        infraction.rule?.description ??
-        "Unknown rule",
-
-      accusedName: getUserDisplayName(
-        infraction.accusedUser,
-      ),
-
-      reporterName: getUserDisplayName(
-        infraction.reporterUser,
-      ),
-
-      yesVotes: infraction.yesVotes,
-      noVotes: infraction.noVotes,
-
+  const data: TransactionTableRow[] =
+    transactions?.map((transaction) => ({
+      _id: transaction._id,
+      userId: transaction.userId,
+      createdBy: transaction.createdBy,
+      amountCents: transaction.amountCents,
+      paymentMethod: transaction.paymentMethod,
+      status: transaction.status,
+      createdAt: transaction.createdAt,
+      resolvedAt: transaction.resolvedAt,
       requiredApprovals:
-        infraction.requiredApprovals,
-
+        transaction.requiredApprovals,
+      userDisplayName:
+        transaction.userDisplayName,
+      creatorDisplayName:
+        transaction.creatorDisplayName,
+      yesVotes: transaction.yesVotes,
+      noVotes: transaction.noVotes,
       currentUserVote:
-        infraction.currentUserVote,
+        transaction.currentUserVote,
     })) ?? []
 
   const [sorting, setSorting] =
@@ -106,26 +68,30 @@ export function ApprobationsTable() {
     },
   })
 
-  if (infractions === undefined) {
+  if (transactions === undefined) {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            Approvals
-          </h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">
+              Transactions
+            </h1>
 
-          <p className="text-sm text-muted-foreground">
-            Review and approve pending penalties.
-          </p>
+            <p className="text-sm text-muted-foreground">
+              Record and review cash payments.
+            </p>
+          </div>
+
+          <AddTransactionDialog />
         </div>
 
         <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Accused</TableHead>
-                <TableHead>Rule</TableHead>
-                <TableHead>Amount</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Payment</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Approvals</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">
@@ -158,25 +124,29 @@ export function ApprobationsTable() {
   if (table.getRowModel().rows.length === 0) {
     return (
       <div className="flex flex-1 flex-col gap-4 p-4">
-        <div>
-          <h1 className="text-2xl font-semibold">
-            Approvals
-          </h1>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">
+              Transactions
+            </h1>
 
-          <p className="text-sm text-muted-foreground">
-            Review and approve pending penalties.
-          </p>
+            <p className="text-sm text-muted-foreground">
+              Record and review cash payments.
+            </p>
+          </div>
+
+          <AddTransactionDialog />
         </div>
 
         <div className="flex min-h-64 items-center justify-center rounded-md border">
           <div className="text-center">
             <p className="font-medium">
-              No pending approvals
+              No transactions
             </p>
 
             <p className="mt-1 text-sm text-muted-foreground">
-              There are currently no penalties waiting
-              for review.
+              No cash transactions have been
+              recorded yet.
             </p>
           </div>
         </div>
@@ -186,14 +156,18 @@ export function ApprobationsTable() {
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4">
-      <div>
-        <h1 className="text-2xl font-semibold">
-          Approvals
-        </h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">
+            Transactions
+          </h1>
 
-        <p className="text-sm text-muted-foreground">
-          Review and approve pending penalties.
-        </p>
+          <p className="text-sm text-muted-foreground">
+            Record and review cash payments.
+          </p>
+        </div>
+
+        <AddTransactionDialog />
       </div>
 
       <div className="rounded-md border">
@@ -208,8 +182,7 @@ export function ApprobationsTable() {
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef
-                                .header,
+                              header.column.columnDef.header,
                               header.getContext(),
                             )}
                       </TableHead>
