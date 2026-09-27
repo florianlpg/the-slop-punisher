@@ -1,4 +1,3 @@
-```tsx
 "use client";
 
 import { useAuth, useClerk, useSignIn } from "@clerk/nextjs";
@@ -144,4 +143,3 @@ export function useLogin(): UseLoginReturn {
     error,
   };
 }
-```
