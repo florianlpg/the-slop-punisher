@@ -3,14 +3,8 @@ import { cn } from "cn"
 import { FC, HTMLAttributes, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
+import ErrorDialogs from "../Login/ErrorDialogs";
+
 import {
   Field,
   FieldDescription,
@@ -21,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import Image from "next/image"
 import Link from "next/link"
+import { useLogin } from "@/hooks/auth/useLogin";
 
 type LoginFormProps = HTMLAttributes<HTMLDivElement>;
 
@@ -31,59 +26,47 @@ export const LoginForm: FC<LoginFormProps> = ({
   const [isAppleClicked, setIsAppleClicked] = useState<boolean>(false);
   const [isGoogleClicked, setIsGoogleClicked] = useState<boolean>(false);
   const [isMetaClicked, setIsMetaClicked] = useState<boolean>(false);
+  const [isForgotPassword, setIsForgotPassword] = useState<boolean>(false);
+  const { login, isLoading, error } = useLogin();
+
+  const handleSubmit = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ): Promise<Error | void> => {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
+
+    const username = formData.get("username");
+    const password = formData.get("password");
+
+    if (typeof username !== "string" || typeof password !== "string") {
+      return new Error("Invalid username or password");
+    }
+
+    await login({
+      username,
+      password,
+    });
+  };
+
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
 
-      {
-        isAppleClicked && (
-          <Dialog open={isAppleClicked} onOpenChange={() => setIsAppleClicked(false)}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Bro lmao</DialogTitle>
-                <DialogDescription>
-                  you really though i&apos;d implement apple login? fr fuck off
-                </DialogDescription>
-              </DialogHeader>
-            </DialogContent>
-          </Dialog>
-        )
-      }
-
-      {
-        isGoogleClicked && (
-          <Dialog open={isGoogleClicked} onOpenChange={() => setIsGoogleClicked(false)}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>I admit</DialogTitle>
-                <DialogDescription>
-                  That would have been nice. but... just use yout fkn email and password. It&apos;s really not that hard you moron.
-                </DialogDescription>
-              </DialogHeader>
-            </DialogContent>
-          </Dialog>
-        )
-      }
-
-      {
-        isMetaClicked && (
-          <Dialog open={isMetaClicked} onOpenChange={() => setIsMetaClicked(false)}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>At that point you&apos;ve got to be joking</DialogTitle>
-                <DialogDescription>
-                  Did you really think this btn would work? I mean who connects with their facebook account anyway? What are you a fucking Dinosaur ?
-                </DialogDescription>
-              </DialogHeader>
-            </DialogContent>
-          </Dialog>
-        )
-      }
-
+      <ErrorDialogs
+        isAppleClicked={isAppleClicked}
+        setIsAppleClicked={setIsAppleClicked}
+        isGoogleClicked={isGoogleClicked}
+        setIsGoogleClicked={setIsGoogleClicked}
+        isMetaClicked={isMetaClicked}
+        setIsMetaClicked={setIsMetaClicked}
+        isForgotPassword={isForgotPassword}
+        setIsForgotPassword={setIsForgotPassword}
+      />
 
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8">
+          <form className="p-6 md:p-8" onSubmit={handleSubmit}>
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -92,11 +75,12 @@ export const LoginForm: FC<LoginFormProps> = ({
                 </p>
               </div>
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="username">Username</FieldLabel>
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="m@example.com"
+                  id="username"
+                  name="username"
+                  type="text"
+                  placeholder="Enter your username"
                   required
                 />
               </Field>
@@ -110,10 +94,13 @@ export const LoginForm: FC<LoginFormProps> = ({
                     Forgot your password?
                   </a>
                 </div>
-                <Input id="password" type="password" required />
+                <Input id="password" name="password" type="password" required />
               </Field>
+
+              {error && (<p className="text-sm text-destructive"> {error} </p>)}
+
               <Field>
-                <Button type="submit">Login</Button>
+                <Button className={"cursor-pointer"} type="submit" disabled={isLoading}>{isLoading ? "Logging in..." : "Login"}</Button>
               </Field>
               <FieldSeparator className="*:data-[slot=field-separator-content]:bg-card">
                 Or continue with
