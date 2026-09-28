@@ -3,6 +3,7 @@
 import * as React from "react";
 import { flexRender, useTable, type SortingState } from "@tanstack/react-table";
 import { usePaginatedQuery } from "convex/react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 import { api } from "@/convex/_generated/api";
 import type { LogTableRow } from "@/app/logs/types";
@@ -10,6 +11,10 @@ import type { LogTableRow } from "@/app/logs/types";
 import { columns } from "./columns";
 import { LogsTableFilters, type LogsFilters } from "./LogsTableFilters";
 import { features } from "./LogsTableFeatures";
+import { getActionLabel, getEntityLabel } from "./columns/action";
+import { getLogDetails } from "./columns/details";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const defaultFilters: LogsFilters = {
   actor: "all",
@@ -34,8 +39,8 @@ export function LogsTable() {
   );
 
   const [filters, setFilters] = React.useState<LogsFilters>(defaultFilters);
-
   const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [search, setSearch] = React.useState("");
 
   const data = React.useMemo<LogTableRow[]>(
     () =>
@@ -56,6 +61,7 @@ export function LogsTable() {
 
   const filteredData = React.useMemo(() => {
     const entityId = filters.entityId.trim().toLowerCase();
+    const searchTerm = search.trim().toLocaleLowerCase();
 
     return data.filter((log) => {
       if (filters.actor !== "all" && log.actorUserId !== filters.actor) {
@@ -115,9 +121,30 @@ export function LogsTable() {
         }
       }
 
+      if (searchTerm) {
+        const actor = getUserLabel(log.actor);
+        const target = getUserLabel(log.targetUser);
+        const searchableValues = [
+          getActionLabel(log.action),
+          getEntityLabel(log.entityType),
+          getLogDetails(log),
+          actor,
+          target,
+          log.entityId,
+        ];
+
+        if (
+          !searchableValues.some((value) =>
+            value?.toLocaleLowerCase().includes(searchTerm),
+          )
+        ) {
+          return false;
+        }
+      }
+
       return true;
     });
-  }, [data, filters]);
+  }, [data, filters, search]);
 
   const table = useTable({
     data: filteredData,
@@ -127,10 +154,30 @@ export function LogsTable() {
       sorting,
     },
     onSortingChange: setSorting,
+    initialState: {
+      pagination: {
+        pageIndex: 0,
+        pageSize: 10,
+      },
+    },
   });
 
   const isLoading = status === "LoadingFirstPage";
   const canLoadMore = status === "CanLoadMore";
+  const { pageIndex, pageSize } = table.state.pagination;
+  const pageCount = table.getPageCount();
+  const pageStart = filteredData.length === 0 ? 0 : pageIndex * pageSize + 1;
+  const pageEnd = Math.min((pageIndex + 1) * pageSize, filteredData.length);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    table.setPageIndex(0);
+  };
+
+  const handleFiltersChange = (nextFilters: LogsFilters) => {
+    setFilters(nextFilters);
+    table.setPageIndex(0);
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
@@ -142,14 +189,29 @@ export function LogsTable() {
         </p>
       </div>
 
-      <LogsTableFilters
-        data={data}
-        filters={filters}
-        onFiltersChange={setFilters}
-      />
+      <div className="flex flex-col gap-4">
+        <div className="relative w-full sm:max-w-sm">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(event) => handleSearchChange(event.target.value)}
+            placeholder="Search logs..."
+            aria-label="Search logs"
+            className="pl-9"
+          />
+        </div>
+
+        <LogsTableFilters
+          data={data}
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+        />
+      </div>
 
       <div className="text-muted-foreground text-sm">
-        Showing {filteredData.length} of {data.length} logs
+        {filteredData.length === 0
+          ? "No logs to show"
+          : `Showing ${pageStart}–${pageEnd} of ${filteredData.length} loaded logs`}
       </div>
 
       <div className="overflow-hidden rounded-md border">
@@ -191,6 +253,39 @@ export function LogsTable() {
         </table>
       </div>
 
+      {!isLoading && filteredData.length > 0 ? (
+        <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>
+            Page {pageIndex + 1} of {pageCount}
+          </span>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              aria-label="Previous page"
+            >
+              <ChevronLeft />
+              Previous
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              aria-label="Next page"
+            >
+              Next
+              <ChevronRight />
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
       {isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 8 }).map((_, index) => (
@@ -210,15 +305,28 @@ export function LogsTable() {
 
       {canLoadMore ? (
         <div className="flex justify-center">
-          <button
+          <Button
             type="button"
             onClick={() => loadMore(50)}
-            className="rounded-md border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+            variant="outline"
           >
-            Load more
-          </button>
+            Load more history
+          </Button>
         </div>
       ) : null}
     </div>
   );
+}
+
+function getUserLabel(user: LogTableRow["actor"] | LogTableRow["targetUser"]) {
+  if (!user) return "";
+
+  return [
+    user.name,
+    user.username,
+    [user.firstName, user.lastName].filter(Boolean).join(" "),
+    user.clerkUserId,
+  ]
+    .filter(Boolean)
+    .join(" ");
 }
