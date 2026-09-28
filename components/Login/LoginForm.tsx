@@ -61,7 +61,7 @@ export const LoginForm: FC<LoginFormProps> = ({ className, ...props }) => {
 
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <form className="p-6 md:p-8" onSubmit={handleSubmit}>
+          <form className="p-5 sm:p-6 md:p-8" onSubmit={handleSubmit}>
             <FieldGroup>
               <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">Welcome back</h1>
@@ -76,23 +76,37 @@ export const LoginForm: FC<LoginFormProps> = ({ className, ...props }) => {
                   name="username"
                   type="text"
                   placeholder="Enter your username"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   required
                 />
               </Field>
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <div
+                  <button
+                    type="button"
                     onClick={() => setIsForgotPassword(true)}
-                    className="ml-auto text-sm underline-offset-2 hover:underline cursor-pointer"
+                    className="ml-auto min-h-11 -mr-2 px-2 text-sm underline-offset-2 hover:underline"
                   >
                     Forgot your password?
-                  </div>
+                  </button>
                 </div>
-                <Input id="password" name="password" type="password" required />
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  required
+                />
               </Field>
 
-              {error && <p className="text-sm text-destructive"> {error} </p>}
+              {error && (
+                <p role="alert" className="text-sm text-destructive">
+                  {error}
+                </p>
+              )}
 
               <Field>
                 <Button
