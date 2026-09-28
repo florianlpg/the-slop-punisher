@@ -168,7 +168,10 @@ export function PenaltiesTable() {
 
           <select
             value={ruleFilter}
-            onChange={(event) => { setRuleFilter(event.target.value); setPageIndex(0); }}
+            onChange={(event) => {
+              setRuleFilter(event.target.value);
+              setPageIndex(0);
+            }}
             className="h-9 min-w-48 rounded-md border bg-background px-3 text-sm"
           >
             <option value="all">All rules</option>
@@ -186,7 +189,10 @@ export function PenaltiesTable() {
 
           <select
             value={userFilter}
-            onChange={(event) => { setUserFilter(event.target.value); setPageIndex(0); }}
+            onChange={(event) => {
+              setUserFilter(event.target.value);
+              setPageIndex(0);
+            }}
             className="h-9 min-w-48 rounded-md border bg-background px-3 text-sm"
           >
             <option value="all">All users</option>
@@ -204,7 +210,10 @@ export function PenaltiesTable() {
 
           <select
             value={reporterFilter}
-            onChange={(event) => { setReporterFilter(event.target.value); setPageIndex(0); }}
+            onChange={(event) => {
+              setReporterFilter(event.target.value);
+              setPageIndex(0);
+            }}
             className="h-9 min-w-48 rounded-md border bg-background px-3 text-sm"
           >
             <option value="all">All reporters</option>
@@ -222,7 +231,10 @@ export function PenaltiesTable() {
 
           <select
             value={statusFilter}
-            onChange={(event) => { setStatusFilter(event.target.value); setPageIndex(0); }}
+            onChange={(event) => {
+              setStatusFilter(event.target.value);
+              setPageIndex(0);
+            }}
             className="h-9 min-w-36 rounded-md border bg-background px-3 text-sm"
           >
             <option value="all">All statuses</option>
@@ -311,11 +323,41 @@ export function PenaltiesTable() {
 
       {penalties !== undefined && (
         <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>{filteredPenalties.length === 0 ? "No penalties to show" : `Showing ${pageStart}–${pageEnd} of ${filteredPenalties.length} penalties`}</span>
+          <span>
+            {filteredPenalties.length === 0
+              ? "No penalties to show"
+              : `Showing ${pageStart}–${pageEnd} of ${filteredPenalties.length} penalties`}
+          </span>
           <div className="flex items-center gap-2 self-end sm:self-auto">
-            <Button type="button" variant="outline" size="sm" onClick={() => setPageIndex((page) => Math.max(page - 1, 0))} disabled={currentPageIndex === 0} aria-label="Previous page"><ChevronLeft />Previous</Button>
-            <span className="min-w-20 text-center tabular-nums">Page {pageCount === 0 ? 0 : currentPageIndex + 1} of {pageCount}</span>
-            <Button type="button" variant="outline" size="sm" onClick={() => setPageIndex((page) => Math.min(page + 1, Math.max(pageCount - 1, 0)))} disabled={currentPageIndex >= pageCount - 1} aria-label="Next page">Next<ChevronRight /></Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setPageIndex((page) => Math.max(page - 1, 0))}
+              disabled={currentPageIndex === 0}
+              aria-label="Previous page"
+            >
+              <ChevronLeft />
+              Previous
+            </Button>
+            <span className="min-w-20 text-center tabular-nums">
+              Page {pageCount === 0 ? 0 : currentPageIndex + 1} of {pageCount}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setPageIndex((page) =>
+                  Math.min(page + 1, Math.max(pageCount - 1, 0)),
+                )
+              }
+              disabled={currentPageIndex >= pageCount - 1}
+              aria-label="Next page"
+            >
+              Next
+              <ChevronRight />
+            </Button>
           </div>
         </div>
       )}

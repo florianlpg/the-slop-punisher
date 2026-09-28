@@ -305,11 +305,7 @@ export function LogsTable() {
 
       {canLoadMore ? (
         <div className="flex justify-center">
-          <Button
-            type="button"
-            onClick={() => loadMore(50)}
-            variant="outline"
-          >
+          <Button type="button" onClick={() => loadMore(50)} variant="outline">
             Load more history
           </Button>
         </div>

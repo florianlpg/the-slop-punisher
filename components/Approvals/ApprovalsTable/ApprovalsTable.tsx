@@ -178,7 +178,16 @@ export function ApprobationsTable() {
 
       <div className="relative w-full sm:max-w-sm">
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-        <Input value={search} onChange={(event) => { setSearch(event.target.value); table.setPageIndex(0); }} placeholder="Search approvals..." aria-label="Search approvals" className="pl-9" />
+        <Input
+          value={search}
+          onChange={(event) => {
+            setSearch(event.target.value);
+            table.setPageIndex(0);
+          }}
+          placeholder="Search approvals..."
+          aria-label="Search approvals"
+          className="pl-9"
+        />
       </div>
 
       <div className="rounded-md border">
@@ -201,27 +210,65 @@ export function ApprobationsTable() {
           </TableHeader>
 
           <TableBody>
-            {table.getRowModel().rows.length ? table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  No approvals match your search.
+                </TableCell>
               </TableRow>
-            )) : (
-              <TableRow><TableCell colSpan={columns.length} className="h-24 text-center text-muted-foreground">No approvals match your search.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
       </div>
 
       <div className="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-        <span>{visibleData.length === 0 ? "No approvals to show" : `Showing ${pageStart}–${pageEnd} of ${visibleData.length} approvals`}</span>
+        <span>
+          {visibleData.length === 0
+            ? "No approvals to show"
+            : `Showing ${pageStart}–${pageEnd} of ${visibleData.length} approvals`}
+        </span>
         <div className="flex items-center gap-2 self-end sm:self-auto">
-          <Button type="button" variant="outline" size="sm" onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()} aria-label="Previous page"><ChevronLeft />Previous</Button>
-          <span className="min-w-20 text-center tabular-nums">Page {pageCount === 0 ? 0 : pageIndex + 1} of {pageCount}</span>
-          <Button type="button" variant="outline" size="sm" onClick={() => table.nextPage()} disabled={!table.getCanNextPage()} aria-label="Next page">Next<ChevronRight /></Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            aria-label="Previous page"
+          >
+            <ChevronLeft />
+            Previous
+          </Button>
+          <span className="min-w-20 text-center tabular-nums">
+            Page {pageCount === 0 ? 0 : pageIndex + 1} of {pageCount}
+          </span>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            aria-label="Next page"
+          >
+            Next
+            <ChevronRight />
+          </Button>
         </div>
       </div>
     </div>

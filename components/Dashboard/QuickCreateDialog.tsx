@@ -121,9 +121,7 @@ export function QuickCreateDialog() {
                 setUserId(value ?? undefined);
               }}
             >
-              <SelectTrigger
-                className="w-full"
-              >
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a user...">
                   {selectedUser ? getUserDisplayName(selectedUser) : undefined}
                 </SelectValue>
@@ -149,9 +147,7 @@ export function QuickCreateDialog() {
                 setRuleId(value ? (value as Id<"rules">) : undefined);
               }}
             >
-              <SelectTrigger
-                className="w-full"
-              >
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select a rule...">
                   {selectedRule?.description}
                 </SelectValue>
