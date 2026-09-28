@@ -9,7 +9,8 @@ export const useLogout = () => {
 
   const logout = async () => {
     await signOut();
-    router.push("/auth/login");
+    router.replace("/auth/login");
+    router.refresh();
   };
 
   return { logout };

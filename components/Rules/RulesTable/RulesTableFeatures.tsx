@@ -16,13 +16,11 @@ import {
 export const features = tableFeatures({
   columnFilteringFeature,
   columnVisibilityFeature,
-  rowPaginationFeature,
   rowSelectionFeature,
   rowSortingFeature,
 
   filteredRowModel: createFilteredRowModel(),
 
-  paginatedRowModel: createPaginatedRowModel(),
 
   sortedRowModel: createSortedRowModel(),
 
